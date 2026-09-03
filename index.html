@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScriptCade Arcade</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+    }
+
+    .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    
+    .search-bar {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: var(--card-bg);
+      color: var(--text);
+      width: 250px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .thumbnail {
+      width: 100%;
+      height: 140px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .info { padding: 1rem; }
+    .title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      padding: 0.5rem;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">ScriptCade</div>
+    <input type="text" class="search-bar" placeholder="Search games...">
+  </header>
+
+  <main class="grid">
+    <div class="game-card">
+      <div class="thumbnail">🎮 Game Preview</div>
+      <div class="info">
+        <div class="title">Space Blaster</div>
+        <div class="desc">A retro arcade space shooter built with JavaScript.</div>
+        <a href="#" class="btn">Play Now</a>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="thumbnail">🕹️ Game Preview</div>
+      <div class="info">
+        <div class="title">Pixel Runner</div>
+        <div class="desc">Dodge obstacles in an infinite side-scroller.</div>
+        <a href="#" class="btn">Play Now</a>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="thumbnail">🧩 Game Preview</div>
+      <div class="info">
+        <div class="title">Grid Puzzle</div>
+        <div class="desc">Test your brain power in this minimalist puzzle game.</div>
+        <a href="#" class="btn">Play Now</a>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
