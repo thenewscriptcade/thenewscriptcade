@@ -3,202 +3,207 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TheNewScriptcade | Game Hub</title>
+  <title>ScriptCade | Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050505;
-      --neon-blue: #00f0ff;
-      --neon-purple: #b026ff;
-      --card-bg: rgba(20, 20, 25, 0.8);
-      --text: #ffffff;
-      --text-muted: #a0a0b0;
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-hover: #27272a;
+      --border: #3f3f46;
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #ffffff;
+      --accent-bg: #27272a;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     
     body {
       background-color: var(--bg);
-      background-image: radial-gradient(circle at top right, rgba(176, 38, 255, 0.1), transparent 40%),
-                        radial-gradient(circle at bottom left, rgba(0, 240, 255, 0.1), transparent 40%);
-      color: var(--text);
+      color: var(--text-main);
       min-height: 100vh;
-      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* --- OPENING ANIMATION --- */
-    #boot-screen {
+    /* --- CLEAN LOADING SCREEN --- */
+    #loader {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000; z-index: 9999;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      transition: opacity 0.8s ease-in-out, visibility 0.8s;
+      background: var(--bg); z-index: 9999;
+      display: flex; justify-content: center; align-items: center;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
 
-    .glitch-text {
-      font-size: 3rem; font-weight: 900; letter-spacing: 2px;
-      color: var(--neon-blue);
-      text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-purple);
-      animation: pulse 1.5s infinite alternate;
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    .loading-bar {
-      width: 200px; height: 4px; background: #222; margin-top: 20px; border-radius: 4px; overflow: hidden;
-    }
-    .loading-progress {
-      width: 0%; height: 100%; background: var(--neon-blue);
-      box-shadow: 0 0 10px var(--neon-blue);
-      animation: load 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    @keyframes pulse { 0% { transform: scale(0.98); opacity: 0.8; } 100% { transform: scale(1.02); opacity: 1; } }
-    @keyframes load { 0% { width: 0%; } 50% { width: 60%; } 100% { width: 100%; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* --- MAIN LAYOUT --- */
-    #main-content { opacity: 0; transform: translateY(20px); transition: all 1s ease-out; padding: 2rem; }
-    #main-content.visible { opacity: 1; transform: translateY(0); }
+    #app {
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      max-width: 1200px; margin: 0 auto; padding: 3rem 2rem;
+    }
+    
+    #app.ready { opacity: 1; transform: translateY(0); }
 
     header {
       display: flex; justify-content: space-between; align-items: center;
-      max-width: 1200px; margin: 0 auto 3rem;
-      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;
+      margin-bottom: 4rem;
     }
 
-    .logo {
-      font-size: 1.8rem; font-weight: 900; text-transform: uppercase;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .brand {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;
+      display: flex; align-items: center; gap: 0.5rem;
     }
 
-    .hero { text-align: center; margin-bottom: 3rem; }
-    .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .hero p { color: var(--text-muted); font-size: 1.1rem; }
+    .brand-icon {
+      width: 24px; height: 24px; background: var(--text-main); border-radius: 6px;
+    }
 
-    /* --- DYNAMIC GRID --- */
+    .header-tag {
+      font-size: 0.875rem; font-weight: 600; color: var(--text-muted);
+      background: var(--surface); padding: 0.4rem 0.8rem; border-radius: 20px;
+    }
+
+    .section-title {
+      font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px;
+    }
+    
+    .section-subtitle {
+      color: var(--text-muted); margin-bottom: 3rem; font-size: 1.1rem;
+    }
+
+    /* --- GAME GRID --- */
     .grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 2rem; max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
     }
 
-    .game-card {
-      background: var(--card-bg); border-radius: 16px; padding: 1.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
-      transition: all 0.3s ease; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; justify-content: space-between;
-      min-height: 200px;
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s;
     }
 
-    .game-card::before {
-      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
-      transition: left 0.5s ease;
+    .card:hover {
+      transform: translateY(-4px);
+      background: var(--surface-hover);
+      border-color: #52525b;
     }
 
-    .game-card:hover { transform: translateY(-5px); border-color: rgba(0, 240, 255, 0.3); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.1); }
-    .game-card:hover::before { left: 100%; }
+    .card-header { margin-bottom: 1rem; }
+    
+    .card-title {
+      font-size: 1.25rem; font-weight: 600; color: var(--text-main);
+      margin-bottom: 0.25rem; text-transform: capitalize;
+    }
 
-    .game-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; text-transform: capitalize; color: #fff; }
-    .game-desc { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem; flex-grow: 1; }
+    .card-desc {
+      font-size: 0.95rem; color: var(--text-muted); line-height: 1.5;
+      flex-grow: 1; margin-bottom: 2rem;
+    }
 
     .play-btn {
-      display: block; width: 100%; text-align: center; padding: 0.8rem;
-      background: transparent; border: 1px solid var(--neon-blue);
-      color: var(--neon-blue); text-decoration: none; border-radius: 8px;
-      font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-      transition: all 0.2s ease;
+      display: inline-flex; justify-content: center; align-items: center;
+      width: 100%; padding: 0.75rem;
+      background: var(--text-main); color: var(--bg);
+      text-decoration: none; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      transition: opacity 0.2s;
     }
 
-    .play-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
-
-    .status { text-align: center; color: var(--text-muted); grid-column: 1 / -1; }
+    .play-btn:hover { opacity: 0.9; }
+    
+    .empty-state { color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 2rem; }
   </style>
 </head>
 <body>
 
-  <div id="boot-screen">
-    <div class="glitch-text">SCRIPTING ARCADE...</div>
-    <div class="loading-bar">
-      <div class="loading-progress"></div>
-    </div>
+  <!-- Clean Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
   </div>
 
-  <div id="main-content">
+  <!-- Main App -->
+  <div id="app">
     <header>
-      <div class="logo">ScriptCade</div>
-      <div style="color: var(--neon-blue); font-weight: bold;">[ SYSTEM ONLINE ]</div>
+      <div class="brand">
+        <div class="brand-icon"></div>
+        ScriptCade
+      </div>
+      <div class="header-tag">@thenewscriptcade</div>
     </header>
 
-    <div class="hero">
-      <h1>Select Your Game</h1>
-      <p>Importing modules from @thenewscriptcade</p>
+    <div>
+      <h1 class="section-title">Your Library</h1>
+      <p class="section-subtitle">Auto-synced directly from your GitHub repositories.</p>
     </div>
 
     <main class="grid" id="games-grid">
-      <div class="status">Connecting to GitHub Servers...</div>
+      <!-- Games will inject here -->
     </main>
   </div>
 
   <script>
     const GITHUB_USERNAME = 'thenewscriptcade';
 
-    // Handle the opening animation sequence
+    // Smooth loading sequence
     window.addEventListener('load', () => {
       setTimeout(() => {
-        const bootScreen = document.getElementById('boot-screen');
-        const mainContent = document.getElementById('main-content');
-        
-        bootScreen.style.opacity = '0';
-        bootScreen.style.visibility = 'hidden';
-        mainContent.classList.add('visible');
-        
-        // Fetch the games once the animation finishes
+        document.getElementById('loader').style.opacity = '0';
+        document.getElementById('loader').style.visibility = 'hidden';
+        document.getElementById('app').classList.add('ready');
         fetchGames();
-      }, 2200); // Waits for the 2s loading bar animation to finish
+      }, 800); // Quick, snappy 0.8s load
     });
 
-    // Dynamically import repositories from GitHub
+    // Import repos
     async function fetchGames() {
       const grid = document.getElementById('games-grid');
       
       try {
-        // Fetch public repositories for the user, sorted by most recently updated
         const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=12`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw new Error('Network error');
         
         const repos = await response.json();
-        grid.innerHTML = ''; // Clear loading text
+        grid.innerHTML = ''; 
 
         if (repos.length === 0) {
-          grid.innerHTML = `<div class="status">No repositories found. Create some public repos to see them here!</div>`;
+          grid.innerHTML = `<div class="empty-state">No repositories found. Push some code to see it here.</div>`;
           return;
         }
 
-        // Loop through each repository and create a game card
         repos.forEach(repo => {
-          // Skip the repository holding the website itself to avoid an inception loop
           if (repo.name.toLowerCase() === `${GITHUB_USERNAME}.github.io`) return;
 
           const card = document.createElement('div');
-          card.className = 'game-card';
+          card.className = 'card';
           
-          // Format the repo name (e.g., "my-cool-game" -> "my cool game")
           const cleanName = repo.name.replace(/[-_]/g, ' ');
-          const desc = repo.description || 'System module ready for initialization. No description provided.';
-          
-          // Assuming your games are hosted on GitHub Pages. If not, it falls back to the repo link.
+          const desc = repo.description || 'No description provided for this project.';
           const playUrl = repo.has_pages ? `https://${GITHUB_USERNAME}.github.io/${repo.name}` : repo.html_url;
 
           card.innerHTML = `
-            <div>
-              <div class="game-title">${cleanName}</div>
-              <div class="game-desc">${desc}</div>
+            <div class="card-header">
+              <h2 class="card-title">${cleanName}</h2>
             </div>
-            <a href="${playUrl}" class="play-btn" target="_blank">LAUNCH MODULE</a>
+            <p class="card-desc">${desc}</p>
+            <a href="${playUrl}" class="play-btn" target="_blank">Play Game</a>
           `;
           grid.appendChild(card);
         });
 
       } catch (error) {
         console.error('Error fetching repos:', error);
-        grid.innerHTML = `<div class="status">Error establishing connection to GitHub API.</div>`;
+        grid.innerHTML = `<div class="empty-state">Could not connect to GitHub. Try again later.</div>`;
       }
     }
   </script>
