@@ -3,195 +3,291 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScriptCade</title>
+  <title>The ScriptCade</title>
+  <!-- Using 'Outfit' for that high-end tech/gaming typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* Premium Minimalist Theme */
     :root {
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --border: #222222;
-      --text-main: #ededed;
-      --text-muted: #888888;
-      --btn-bg: #ededed;
-      --btn-text: #0a0a0a;
+      --bg: #050507;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+      --text-muted: #8a8d98;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
     
     body {
       background-color: var(--bg);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.5;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      /* Animated ambient background */
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 50%),
+        radial-gradient(circle at 85% 30%, rgba(15, 118, 110, 0.15), transparent 50%);
+      background-attachment: fixed;
     }
 
-    /* Clean Fade-in Entry */
-    #app {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 4rem 2rem;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: entry 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    @keyframes entry {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    /* --- HERO SECTION --- */
     header {
-      margin-bottom: 4rem;
+      padding: 6rem 2rem 4rem;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.5rem 1.2rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
     }
 
     h1 {
-      font-size: 2.5rem;
-      font-weight: 600;
-      letter-spacing: -0.05em;
-      margin-bottom: 0.5rem;
+      font-size: clamp(3rem, 8vw, 5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 0%, #737373 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .username {
-      color: var(--text-muted);
-      font-size: 1rem;
+    /* --- 3D GRID & CARDS --- */
+    .grid-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+      perspective: 2000px; /* Required for the 3D effect */
     }
 
-    /* Grid Layout */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2.5rem;
     }
 
-    /* Card Styling */
+    /* Card Wrapper handles the 3D rotation */
+    .card-wrapper {
+      transform-style: preserve-3d;
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      transition: border-color 0.2s ease;
+      backdrop-filter: blur(20px);
+      transform-style: preserve-3d;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
     }
 
     .card:hover {
-      border-color: #444;
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
     }
 
-    .card-image-container {
+    /* The Image pops out in 3D */
+    .card-img-container {
       width: 100%;
-      height: 180px;
-      background-color: #1a1a1a;
+      height: 220px;
+      border-radius: 16px;
+      overflow: hidden;
       position: relative;
+      transform: translateZ(30px); /* Pushes image forward in 3D space */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    .card-image {
+    .card-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Minimal Badge */
+    .card:hover .card-img {
+      transform: scale(1.08);
+    }
+
+    /* Floating Glass Badge */
     .badge {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
+      top: 16px;
+      right: 16px;
+      padding: 6px 14px;
+      border-radius: 12px;
       font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       color: white;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateZ(40px); /* Pops the badge even further out */
     }
 
-    .card-content {
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-      justify-content: space-between;
+    .card-info {
+      padding: 1.5rem 0.5rem 0.5rem;
+      transform: translateZ(20px); /* Pushes text forward */
     }
 
     .card-title {
-      font-size: 1.1rem;
-      font-weight: 500;
+      font-size: 1.5rem;
+      font-weight: 700;
       margin-bottom: 1.5rem;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.5px;
     }
 
     .play-btn {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       width: 100%;
-      text-align: center;
-      padding: 0.75rem;
-      background: var(--btn-bg);
-      color: var(--btn-text);
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
       text-decoration: none;
+      border-radius: 14px;
       font-weight: 500;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      transition: opacity 0.2s;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
     }
 
     .play-btn:hover {
-      opacity: 0.8;
+      background: white;
+      color: black;
+    }
+
+    .play-btn svg {
+      width: 18px; height: 18px;
+      fill: none; stroke: currentColor; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: transform 0.3s ease;
+    }
+
+    .play-btn:hover svg {
+      transform: translateX(4px);
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <div id="app">
-    <header>
-      <h1>Projects</h1>
-      <div class="username">github.com/thenewscriptcade</div>
-    </header>
+  <header>
+    <div class="pill">thenewscriptcade</div>
+    <h1>The Arcade.</h1>
+  </header>
 
+  <div class="grid-container">
     <main class="grid" id="game-grid"></main>
   </div>
 
   <script>
-    // Your structured game data
+    // ==========================================
+    // 🎮 YOUR GAME DATA
+    // Add your games here. The UI will build itself.
+    // ==========================================
     const games = [
       {
         title: "Doodle Glider",
-        img: "Doodleglider.png", // Ensure this file is in your repo
+        img: "Doodleglider.png", // Replace with your actual image path/URL
         badgeText: "One Prompt",
-        badgeColor: "#AF2B1E",
+        badgeColor: "rgba(175, 43, 30, 0.8)", // Added opacity for the glass look
         url: "https://relthecreator.github.io/Doodle-Glider/"
       },
       {
-        title: "Project Alpha",
+        title: "Neon Drift",
         img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
-        badgeText: "In Dev",
-        badgeColor: "#333333",
+        badgeText: "Featured",
+        badgeColor: "rgba(37, 99, 235, 0.8)",
         url: "#"
       },
       {
-        title: "Terminal Core",
-        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800",
-        badgeText: "Stable",
-        badgeColor: "#222222",
+        title: "Pixel Vault",
+        img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
+        badgeText: "Classic",
+        badgeColor: "rgba(22, 163, 74, 0.8)",
         url: "#"
       }
     ];
 
-    // Inject games into the grid
     const grid = document.getElementById('game-grid');
     
-    grid.innerHTML = games.map(game => `
-      <div class="card">
-        <div class="card-image-container">
-          ${game.badgeText ? `<span class="badge" style="background-color: ${game.badgeColor};">${game.badgeText}</span>` : ''}
-          <!-- Uses an <img> tag for cleaner scaling -->
-          <img src="${game.img}" alt="${game.title}" class="card-image" onerror="this.style.display='none'">
-        </div>
-        <div class="card-content">
-          <h2 class="card-title">${game.title}</h2>
-          <a href="${game.url}" class="play-btn" target="_blank">Open App</a>
+    // 1. Generate the HTML for the cards
+    grid.innerHTML = games.map((game, index) => `
+      <div class="card-wrapper" style="animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.2 + (index * 0.1)}s forwards;">
+        <div class="card" onclick="window.open('${game.url}', '_blank')">
+          <div class="card-img-container">
+            ${game.badgeText ? `<div class="badge" style="background-color: ${game.badgeColor}; border: 1px solid ${game.badgeColor.replace('0.8', '1')}">${game.badgeText}</div>` : ''}
+            <img src="${game.img}" alt="${game.title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800'">
+          </div>
+          <div class="card-info">
+            <h2 class="card-title">${game.title}</h2>
+            <a href="${game.url}" class="play-btn" target="_blank" onclick="event.stopPropagation()">
+              Launch App
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
         </div>
       </div>
     `).join('');
+
+    // 2. Add the Crazy 3D Mouse Tracking Physics
+    const wrappers = document.querySelectorAll('.card-wrapper');
+
+    wrappers.forEach(wrapper => {
+      const card = wrapper.querySelector('.card');
+
+      wrapper.addEventListener('mousemove', (e) => {
+        const rect = wrapper.getBoundingClientRect();
+        const x = e.clientX - rect.left; // x position within the element.
+        const y = e.clientY - rect.top;  // y position within the element.
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        // Calculate rotation based on mouse distance from center
+        const rotateX = ((y - centerY) / centerY) * -12; // Max 12deg tilt
+        const rotateY = ((x - centerX) / centerX) * 12;
+
+        // Apply instantaneous 3D transform during mouse move
+        card.style.transition = 'none';
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      });
+
+      wrapper.addEventListener('mouseleave', () => {
+        // Snap back smoothly when the mouse leaves
+        card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+        card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+      });
+      
+      wrapper.addEventListener('mouseenter', () => {
+        card.style.transition = 'transform 0.1s ease-out';
+      });
+    });
   </script>
 </body>
 </html>
