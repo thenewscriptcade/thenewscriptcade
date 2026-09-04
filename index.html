@@ -3,292 +3,462 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScriptCade | Neural OS</title>
-  <!-- Rajdhani gives that sleek, cinematic HUD typography -->
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>SCRIPT CADE | Premium Digital</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
   <style>
+    /* ==========================================================================
+       1. VARIABLES & RESET
+       ========================================================================== */
     :root {
-      --obsidian: #030304;
-      --glass-panel: rgba(255, 255, 255, 0.02);
-      --glass-border: rgba(255, 255, 255, 0.05);
-      --text-main: #f0f0f5;
-      --text-muted: #808495;
-      --ambient-glow: #0088ff; /* Default electric blue */
+      --bg-color: #0c0c0c;
+      --text-main: #f4f4f4;
+      --text-muted: #7a7a7a;
+      --accent: #d4ff00; /* High-end chartreuse accent */
+      --transition-slow: 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-fast: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; cursor: crosshair; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      background-color: var(--obsidian);
+      background-color: var(--bg-color);
       color: var(--text-main);
-      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      cursor: none; /* We are using a custom cursor */
     }
 
-    /* --- LIQUID OBSIDIAN & DYNAMIC SHADERS --- */
-    #environment-shader {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-                  var(--ambient-glow) 0%, transparent 40%);
-      opacity: 0.15; /* Subtle liquid breathing effect */
-      transition: --ambient-glow 0.8s ease, opacity 0.5s ease;
-      z-index: 1; pointer-events: none;
-      animation: pulse-shader 4s infinite alternate ease-in-out;
+    body.loading {
+      overflow: hidden; /* Prevent scrolling during load */
     }
 
-    @keyframes pulse-shader { 0% { opacity: 0.1; } 100% { opacity: 0.18; } }
+    ::selection { background: var(--text-main); color: var(--bg-color); }
 
-    /* Laser-Trace Grid */
-    #laser-grid {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
-      background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 50px 50px;
+    /* ==========================================================================
+       2. CUSTOM CURSOR
+       ========================================================================== */
+    .cursor-dot, .cursor-outline {
+      position: fixed;
+      top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 9999;
       pointer-events: none;
-      mask-image: linear-gradient(to bottom, transparent, black, transparent);
-      -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
     }
 
-    /* --- THE WORKSPACE --- */
-    #workspace {
-      position: relative; z-index: 10;
-      max-width: 1400px; margin: 0 auto; padding: 5rem 2rem;
+    .cursor-dot {
+      width: 6px; height: 6px;
+      background-color: var(--accent);
     }
 
-    header {
-      text-align: center; margin-bottom: 5rem;
-      opacity: 0; animation: holo-fade-in 1.5s 0.2s forwards;
+    .cursor-outline {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
     }
 
-    .os-label {
-      display: inline-block; padding: 0.4rem 1rem;
-      background: var(--glass-panel); border: 1px solid var(--ambient-glow);
-      border-radius: 4px; font-size: 0.9rem; font-weight: 600; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--ambient-glow);
-      box-shadow: 0 0 15px rgba(var(--ambient-glow), 0.3);
-      margin-bottom: 1rem; backdrop-filter: blur(10px);
-      transition: border-color 0.8s, color 0.8s, box-shadow 0.8s;
+    /* Hover state for the cursor */
+    .cursor-outline.hovering {
+      width: 80px; height: 80px;
+      background-color: var(--text-main);
+      border-color: transparent;
+      mix-blend-mode: difference;
     }
 
-    h1 {
-      font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 700; text-transform: uppercase;
-      letter-spacing: 2px;
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    /* ==========================================================================
+       3. PRELOADER ANIMATION
+       ========================================================================== */
+    #preloader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000; z-index: 9000;
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 4vw;
+      transition: transform var(--transition-slow);
     }
 
-    /* --- HOLO-PODS (CARDS) --- */
-    .holo-stream {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 3rem;
-      perspective: 1500px;
+    #preloader.loaded { transform: translateY(-100%); }
+
+    .loader-content { display: flex; justify-content: space-between; align-items: flex-end; }
+    
+    .loader-text {
+      font-family: 'Syne', sans-serif; font-size: 2vw; font-weight: 700;
+      text-transform: uppercase; color: var(--text-muted);
     }
 
-    .pod-wrapper { transform-style: preserve-3d; opacity: 0; animation: holo-fade-in 1s forwards; }
-
-    .holo-pod {
-      position: relative;
-      background: linear-gradient(145deg, rgba(20,20,25,0.4), rgba(5,5,10,0.6));
-      border: 1px solid var(--glass-border); border-radius: 16px;
-      padding: 1.5rem; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      display: flex; flex-direction: column; transform-style: preserve-3d;
-      transition: box-shadow 0.4s ease, border-color 0.4s ease;
+    .loader-percentage {
+      font-family: 'Syne', sans-serif; font-size: 10vw; font-weight: 800;
+      line-height: 0.8;
     }
 
-    /* The Electric Aura on Hover */
-    .holo-pod::before {
-      content: ''; position: absolute; inset: -1px; border-radius: 16px;
-      background: var(--ambient-glow); z-index: -1; opacity: 0;
-      filter: blur(15px); transition: opacity 0.4s ease, background 0.8s;
+    /* ==========================================================================
+       4. NAVIGATION
+       ========================================================================== */
+    nav {
+      position: fixed; top: 0; left: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 2rem 4vw; z-index: 100;
+      mix-blend-mode: difference;
     }
 
-    .pod-wrapper:hover .holo-pod { border-color: rgba(255, 255, 255, 0.2); }
-    .pod-wrapper:hover .holo-pod::before { opacity: 0.4; }
-
-    /* Holographic Image Display */
-    .pod-display {
-      width: 100%; height: 200px; border-radius: 10px; overflow: hidden;
-      position: relative; transform: translateZ(30px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .logo {
+      font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: -1px;
     }
 
-    .pod-display::after {
-      content: ''; position: absolute; inset: 0;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
-      pointer-events: none; /* Holographic scanline effect */
+    .nav-links { display: flex; gap: 2rem; font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ==========================================================================
+       5. HERO SECTION
+       ========================================================================== */
+    #hero {
+      height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; padding: 0 4vw;
     }
 
-    .pod-img {
+    .hero-title {
+      font-family: 'Syne', sans-serif; font-size: clamp(4rem, 12vw, 15rem);
+      font-weight: 800; line-height: 0.85; text-transform: uppercase;
+      letter-spacing: -0.04em; margin-bottom: 2rem;
+    }
+
+    /* Masking animation for text reveal */
+    .line-mask { overflow: hidden; display: block; }
+    
+    .line-mask span {
+      display: block; transform: translateY(100%);
+      transition: transform var(--transition-slow);
+      transition-delay: 0.5s; /* Waits for preloader to finish */
+    }
+
+    body.ready .line-mask span { transform: translateY(0); }
+
+    .hero-subtitle {
+      max-width: 400px; font-size: 1.1rem; color: var(--text-muted);
+      line-height: 1.6; font-weight: 400; margin-left: auto;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 1s ease 1s, transform 1s ease 1s;
+    }
+
+    body.ready .hero-subtitle { opacity: 1; transform: translateY(0); }
+
+    /* ==========================================================================
+       6. INFINITE MARQUEE
+       ========================================================================== */
+    .marquee-container {
+      width: 100%; overflow: hidden; padding: 4rem 0;
+      background: var(--text-main); color: var(--bg-color);
+      transform: rotate(-2deg) scale(1.1); margin: 5rem 0 10rem;
+    }
+
+    .marquee-track {
+      display: flex; white-space: nowrap;
+      animation: marquee 20s linear infinite;
+    }
+
+    .marquee-text {
+      font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800;
+      text-transform: uppercase; padding: 0 2rem;
+    }
+
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ==========================================================================
+       7. EDITORIAL PROJECT GRID
+       ========================================================================== */
+    #work { padding: 0 4vw 10rem; }
+
+    .section-header {
+      font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700;
+      margin-bottom: 4rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;
+    }
+
+    .project-grid { display: flex; flex-direction: column; gap: 8rem; }
+
+    .project-card {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+      align-items: center; opacity: 0; transform: translateY(100px);
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .project-card.in-view { opacity: 1; transform: translateY(0); }
+
+    /* Alternating layout for cards */
+    .project-card:nth-child(even) { grid-template-columns: 1.2fr 0.8fr; }
+    .project-card:nth-child(even) .project-image-wrapper { order: 2; }
+    .project-card:nth-child(even) .project-info { order: 1; }
+
+    .project-image-wrapper {
+      width: 100%; height: 70vh; min-height: 500px;
+      overflow: hidden; position: relative; border-radius: 4px;
+      /* Premium clip-path reveal */
+      clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+      transition: clip-path 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .project-card.in-view .project-image-wrapper {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+
+    .project-image {
       width: 100%; height: 100%; object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s;
-      filter: sepia(0.3) hue-rotate(180deg) brightness(0.8) contrast(1.2);
+      transform: scale(1.2); transition: transform 2s ease, filter 0.8s ease;
+      filter: grayscale(100%);
     }
 
-    .pod-wrapper:hover .pod-img { transform: scale(1.05); filter: sepia(0) hue-rotate(0) brightness(1) contrast(1); }
+    .project-card:hover .project-image { transform: scale(1); filter: grayscale(0%); }
 
-    /* Interactive Data Orb (Badge) */
-    .data-orb {
-      position: absolute; top: -10px; right: -10px;
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 16px; border-radius: 30px;
-      background: rgba(0,0,0,0.8); border: 1px solid;
-      font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1px; backdrop-filter: blur(10px);
-      transform: translateZ(50px); box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
-    .orb-core { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 10px currentColor; animation: pulse-shader 2s infinite alternate; }
+    .project-info { padding: 2rem 0; }
 
-    .pod-meta { padding: 1.5rem 0 0.5rem; transform: translateZ(20px); }
-    .pod-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: 1px; }
-
-    /* --- NEURAL CHOICE TILES --- */
-    .neural-tile {
-      position: relative; display: flex; justify-content: space-between; align-items: center;
-      width: 100%; padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px; color: var(--text-main); text-decoration: none;
-      font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;
-      overflow: hidden; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .project-badge {
+      display: inline-block; padding: 0.5rem 1rem;
+      border: 1px solid var(--text-muted); border-radius: 50px;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+      margin-bottom: 2rem; letter-spacing: 1px; color: var(--text-muted);
     }
 
-    /* Refraction Glare Effect */
-    .neural-tile::after {
-      content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transform: skewX(-20deg); transition: 0.5s ease;
+    .project-title {
+      font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800;
+      line-height: 1; margin-bottom: 1.5rem; text-transform: uppercase;
     }
 
-    .neural-tile:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--ambient-glow);
-      box-shadow: 0 0 20px rgba(var(--ambient-glow), 0.2);
+    .project-btn {
+      display: inline-flex; align-items: center; gap: 1rem;
+      font-size: 1rem; font-weight: 600; text-transform: uppercase;
+      text-decoration: none; color: var(--text-main);
+      position: relative; overflow: hidden; padding: 1rem 0;
     }
 
-    .neural-tile:hover::after { left: 150%; }
+    .project-btn::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 2px; background: var(--accent);
+      transform: scaleX(0); transform-origin: right;
+      transition: transform 0.4s ease;
+    }
 
-    .tile-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform 0.3s; }
-    .neural-tile:hover .tile-icon { transform: translateX(5px); }
+    .project-btn:hover::after { transform: scaleX(1); transform-origin: left; }
+    
+    .project-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
+    .project-btn:hover svg { transform: translateX(10px) rotate(45deg); color: var(--accent); }
 
-    @keyframes holo-fade-in { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    /* ==========================================================================
+       8. RESPONSIVE DESIGN
+       ========================================================================== */
+    @media (max-width: 900px) {
+      .project-card, .project-card:nth-child(even) {
+        grid-template-columns: 1fr; gap: 2rem;
+      }
+      .project-card:nth-child(even) .project-image-wrapper { order: 1; }
+      .project-card:nth-child(even) .project-info { order: 2; }
+      .project-image-wrapper { height: 50vh; min-height: 300px; }
+      .hero-title { font-size: 4rem; }
+      nav { display: none; } /* Hide nav on mobile for extreme minimalism */
+      .cursor-dot, .cursor-outline { display: none; } /* Disable custom cursor on mobile */
+      body { cursor: auto; }
+    }
   </style>
 </head>
-<body>
+<body class="loading">
 
-  <!-- Dynamic Background Shaders -->
-  <div id="environment-shader"></div>
-  <div id="laser-grid"></div>
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
 
-  <!-- Main OS UI -->
-  <div id="workspace">
-    <header>
-      <div class="os-label" id="os-status">System Connected</div>
-      <h1>ScriptCade Engine</h1>
-    </header>
-
-    <main class="holo-stream" id="stream-nodes"></main>
+  <div id="preloader">
+    <div class="loader-content">
+      <div class="loader-text">System Initialization</div>
+      <div class="loader-percentage" id="loader-count">0%</div>
+    </div>
   </div>
 
+  <nav>
+    <div class="logo">SC.</div>
+    <div class="nav-links">
+      <span>Index</span>
+      <span>Archive</span>
+      <span>Info</span>
+    </div>
+  </nav>
+
+  <section id="hero">
+    <h1 class="hero-title">
+      <span class="line-mask"><span>The New</span></span>
+      <span class="line-mask"><span>Scriptcade</span></span>
+    </h1>
+    <p class="hero-subtitle">
+      A curated collection of digital experiences, built from the ground up. 
+      Scroll to explore the interactive archive.
+    </p>
+  </section>
+
+  <div class="marquee-container">
+    <div class="marquee-track">
+      <div class="marquee-text">Selected Works — Digital Archives — Playable Modules — </div>
+      <div class="marquee-text">Selected Works — Digital Archives — Playable Modules — </div>
+    </div>
+  </div>
+
+  <section id="work">
+    <h2 class="section-header">Index</h2>
+    <div class="project-grid" id="project-grid">
+      </div>
+  </section>
+
   <script>
-    // ==========================================
-    // 🌌 THE DATA NODES
-    // Add 'shaderColor' to dictate how the environment 
-    // reacts when you hover over a specific story/game.
-    // ==========================================
-    const nodes = [
+    // ==========================================================================
+    // DATA CONFIGURATION
+    // Add your exact repositories and game data here.
+    // ==========================================================================
+    const projects = [
       {
         title: "Doodle Glider",
-        img: "Doodleglider.png", 
+        img: "Doodleglider.png", // Ensure this file is uploaded
         badgeText: "One Prompt",
-        badgeColor: "#AF2B1E",       // The color of the orb
-        shaderColor: "#ff1a40",      // The color the whole room turns on hover (Action/Tense)
         url: "https://relthecreator.github.io/Doodle-Glider/"
       },
       {
         title: "Neon Protocol",
-        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
-        badgeText: "Simulation",
-        badgeColor: "#00f0ff",
-        shaderColor: "#0088ff",      // Tech/Cyberpunk blue
+        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200",
+        badgeText: "Experimental",
         url: "#"
       },
       {
-        title: "Echo Chamber",
-        img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
-        badgeText: "Narrative",
-        badgeColor: "#b026ff",
-        shaderColor: "#7a00ff",      // Mysterious purple
+        title: "Terminal 04",
+        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=1200",
+        badgeText: "Logic Core",
         url: "#"
       }
     ];
 
-    const stream = document.getElementById('stream-nodes');
-    const root = document.documentElement;
-    const osStatus = document.getElementById('os-status');
-
-    // 1. Render the Holo-Pods
-    stream.innerHTML = nodes.map((node, i) => `
-      <div class="pod-wrapper" style="animation-delay: ${0.4 + (i * 0.15)}s;" data-shader="${node.shaderColor}">
-        <div class="holo-pod">
-          <div class="pod-display">
-            <div class="data-orb" style="border-color: ${node.badgeColor}; color: ${node.badgeColor};">
-              <div class="orb-core" style="background: ${node.badgeColor};"></div>
-              ${node.badgeText}
-            </div>
-            <img src="${node.img}" class="pod-img" onerror="this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800'">
-          </div>
-          <div class="pod-meta">
-            <h2 class="pod-title">${node.title}</h2>
-            <!-- The Neural Choice Tile -->
-            <a href="${node.url}" class="neural-tile" target="_blank">
-              Initialize Node
-              <svg class="tile-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
+    // ==========================================================================
+    // 1. INJECT PROJECTS INTO HTML
+    // ==========================================================================
+    const grid = document.getElementById('project-grid');
+    grid.innerHTML = projects.map(proj => `
+      <div class="project-card hover-target">
+        <div class="project-image-wrapper">
+          <img src="${proj.img}" alt="${proj.title}" class="project-image" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200'">
+        </div>
+        <div class="project-info">
+          <div class="project-badge">${proj.badgeText}</div>
+          <h2 class="project-title">${proj.title}</h2>
+          <a href="${proj.url}" target="_blank" class="project-btn hover-target">
+            Explore Module
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+          </a>
         </div>
       </div>
     `).join('');
 
-    // 2. Liquid Environment & Physics Engine
-    const wrappers = document.querySelectorAll('.pod-wrapper');
+    // ==========================================================================
+    // 2. LOADING ANIMATION SEQUENCE
+    // Counts to 100%, then slides the preloader out and triggers Hero animations
+    // ==========================================================================
+    const preloader = document.getElementById('preloader');
+    const loaderCount = document.getElementById('loader-count');
+    let count = 0;
 
-    // Make the ambient shader track the mouse globally
-    document.addEventListener('mousemove', (e) => {
-      root.style.setProperty('--mouse-x', `${e.clientX}px`);
-      root.style.setProperty('--mouse-y', `${e.clientY}px`);
-    });
-
-    wrappers.forEach(wrapper => {
-      const pod = wrapper.querySelector('.holo-pod');
-      const shaderColor = wrapper.getAttribute('data-shader');
-
-      // 3D Tilt Hover Physics
-      wrapper.addEventListener('mousemove', (e) => {
-        const rect = wrapper.getBoundingClientRect();
-        const x = e.clientX - rect.left; 
-        const y = e.clientY - rect.top;  
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
+    const updateLoader = setInterval(() => {
+      // Randomly increment the counter to feel like actual asset loading
+      count += Math.floor(Math.random() * 10) + 2; 
+      
+      if (count > 100) {
+        count = 100;
+        loaderCount.innerText = count + '%';
+        clearInterval(updateLoader);
         
-        const rotateX = ((y - centerY) / centerY) * -10; 
-        const rotateY = ((x - centerX) / centerX) * 10;
+        // Sequence finishes
+        setTimeout(() => {
+          preloader.classList.add('loaded');
+          document.body.classList.remove('loading');
+          
+          // Trigger the big text reveal after preloader slides up
+          setTimeout(() => {
+            document.body.classList.add('ready');
+          }, 800);
+          
+          // Remove preloader from DOM so it doesn't block clicks
+          setTimeout(() => {
+            preloader.style.display = 'none';
+          }, 2000);
+          
+        }, 500); // Small pause at 100%
+      } else {
+        loaderCount.innerText = count + '%';
+      }
+    }, 40); // Fast interval for the numbers
 
-        pod.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-      });
+    // ==========================================================================
+    // 3. CUSTOM PHYSICS CURSOR
+    // Tracks mouse with a delayed ease on the outer circle
+    // ==========================================================================
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    const hoverTargets = document.querySelectorAll('.hover-target, a');
 
-      // Dynamic Environment Shader Activation
-      wrapper.addEventListener('mouseenter', () => {
-        root.style.setProperty('--ambient-glow', shaderColor);
-        osStatus.innerText = "Processing Sequence...";
-        osStatus.style.color = shaderColor;
-      });
+    // Mouse coordinates
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    // Outline coordinates (starts at center)
+    let outlineX = window.innerWidth / 2;
+    let outlineY = window.innerHeight / 2;
 
-      // Reset Physics and Shaders
-      wrapper.addEventListener('mouseleave', () => {
-        pod.style.transform = `rotateX(0deg) rotateY(0deg)`;
-        root.style.setProperty('--ambient-glow', '#0088ff'); // Reset to default blue
-        osStatus.innerText = "System Connected";
-        osStatus.style.color = 'var(--ambient-glow)';
-      });
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      
+      // Instantly move the tiny dot
+      cursorDot.style.transform = `translate(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%))`;
     });
+
+    // Animate the outline with physics (Lerping)
+    const animateCursor = () => {
+      let distX = mouseX - outlineX;
+      let distY = mouseY - outlineY;
+      
+      // The 0.15 controls the "drag/lag" of the circle. Lower = slower.
+      outlineX = outlineX + (distX * 0.15);
+      outlineY = outlineY + (distY * 0.15);
+      
+      cursorOutline.style.transform = `translate(calc(${outlineX}px - 50%), calc(${outlineY}px - 50%))`;
+      
+      requestAnimationFrame(animateCursor);
+    };
+    animateCursor();
+
+    // Expand cursor when hovering over links or project cards
+    hoverTargets.forEach(target => {
+      target.addEventListener('mouseenter', () => cursorOutline.classList.add('hovering'));
+      target.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovering'));
+    });
+
+    // ==========================================================================
+    // 4. SCROLL REVEAL OBSERVER (INTERSECTION OBSERVER)
+    // Triggers the clip-path and fade-up animations when elements enter viewport
+    // ==========================================================================
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.15 // Triggers when 15% of the element is visible
+    };
+
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          observer.unobserve(entry.target); // Only animate once
+        }
+      });
+    }, observerOptions);
+
+    // Attach observer to all project cards
+    document.querySelectorAll('.project-card').forEach(card => {
+      scrollObserver.observe(card);
+    });
+
   </script>
 </body>
 </html>
