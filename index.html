@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCRIPT CADE | Monolith Edition</title>
+  <title>SCRIPT CADE | Monolith V3</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     /* ==========================================================================
-       1. CORE VARIABLES & ARCHITECTURE
+       1. CORE ARCHITECTURE & VARIABLES
        ========================================================================== */
     :root {
-      --color-bg: #070707;
-      --color-text: #f0f0f0;
-      --color-muted: #555555;
-      --color-accent: #ff2a00;
-      --color-surface: #111111;
+      --color-bg: #030303;
+      --color-text: #fdfdfd;
+      --color-muted: #666666;
+      --color-accent: #ff3300; /* High-voltage industrial orange */
+      --color-surface: #0a0a0a;
       
       --font-display: 'Syne', sans-serif;
       --font-ui: 'Inter', sans-serif;
@@ -33,124 +33,116 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    html {
-      font-size: 16px;
-      background: var(--color-bg);
-    }
+    html { font-size: 16px; background: var(--color-bg); overscroll-behavior: none; }
 
     body {
       color: var(--color-text);
       font-family: var(--font-ui);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      overflow: hidden; /* Handled by custom smooth scroll */
+      overflow: hidden; /* Scroll is handled by JS Lerp */
       cursor: none;
       user-select: none;
+      background: var(--color-bg);
     }
 
     ::selection { background: var(--color-accent); color: var(--color-bg); }
 
     /* ==========================================================================
-       2. CANVAS GRAIN & CUSTOM CURSOR
+       2. CANVAS GRAIN & CUSTOM PHYSICS CURSOR
        ========================================================================== */
     #grain-canvas {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: 9999; pointer-events: none; opacity: 0.04; mix-blend-mode: overlay;
+      z-index: 9999; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
     }
 
     .cursor-dot, .cursor-follower {
       position: fixed; top: 0; left: 0;
       border-radius: 50%; z-index: 10000;
-      pointer-events: none;
-      transform: translate3d(-50%, -50%, 0);
+      pointer-events: none; transform: translate3d(-50%, -50%, 0);
     }
 
-    .cursor-dot {
-      width: 5px; height: 5px; background: var(--color-accent);
-    }
+    .cursor-dot { width: 4px; height: 4px; background: var(--color-accent); }
 
     .cursor-follower {
-      width: 40px; height: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), background 0.4s var(--ease-out), border 0.4s var(--ease-out);
+      width: 40px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), 
+                  background 0.4s var(--ease-out), border 0.4s var(--ease-out);
     }
 
     .cursor-follower.active {
-      width: 80px; height: 80px;
-      background: rgba(255, 255, 255, 0.1);
-      border-color: transparent; backdrop-filter: blur(2px);
+      width: 100px; height: 100px;
+      background: var(--color-text); border-color: transparent;
+      mix-blend-mode: difference;
     }
 
-    .cursor-follower.menu-active {
-      width: 10px; height: 10px; background: var(--color-text);
+    .cursor-follower.drag {
+      width: 80px; height: 80px; border-color: var(--color-accent);
+      background: rgba(255, 51, 0, 0.1); backdrop-filter: blur(4px);
     }
+    
+    /* Drag Text Indicator inside cursor */
+    .cursor-follower::after {
+      content: 'DRAG'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); font-size: 10px; font-weight: 700;
+      letter-spacing: 2px; color: var(--color-accent); opacity: 0;
+      transition: opacity 0.3s; font-family: var(--font-display);
+    }
+    
+    .cursor-follower.drag::after { opacity: 1; }
 
     /* ==========================================================================
-       3. CUSTOM CONTEXT MENU
-       ========================================================================== */
-    #context-menu {
-      position: fixed; z-index: 10001;
-      background: rgba(15, 15, 15, 0.9);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 10px;
-      min-width: 200px;
-      opacity: 0; visibility: hidden;
-      transform: scale(0.95) translateY(10px);
-      transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out), visibility 0.2s;
-    }
-
-    #context-menu.show {
-      opacity: 1; visibility: visible; transform: scale(1) translateY(0);
-    }
-
-    .context-item {
-      padding: 12px 15px; font-size: 0.85rem; font-weight: 500;
-      color: var(--color-text); cursor: none;
-      border-radius: 4px; display: flex; justify-content: space-between;
-      transition: background 0.2s;
-    }
-
-    .context-item:hover { background: rgba(255,255,255,0.1); color: var(--color-accent); }
-    .context-item span { color: var(--color-muted); font-size: 0.75rem; }
-
-    /* ==========================================================================
-       4. PRELOADER SEQUENCE
+       3. SYSTEM PRELOADER
        ========================================================================== */
     #preloader {
       position: fixed; inset: 0; background: var(--color-bg); z-index: 9000;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      transition: clip-path 1.2s var(--ease-in-out);
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1);
     }
 
-    #preloader.complete { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+    #preloader.complete { transform: translateY(-100%); }
 
     .loader-counter {
-      font-family: var(--font-display); font-size: 15vw; font-weight: 800;
-      line-height: 1; color: transparent;
-      -webkit-text-stroke: 1px var(--color-muted);
+      font-family: var(--font-display); font-size: 18vw; font-weight: 800;
+      line-height: 1; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.1);
       position: relative;
     }
 
     .loader-counter::after {
       content: attr(data-count); position: absolute; top: 0; left: 0;
-      color: var(--color-text); -webkit-text-stroke: 0;
-      clip-path: inset(100% 0 0 0);
+      color: var(--color-text); -webkit-text-stroke: 0; clip-path: inset(100% 0 0 0);
       animation: fillText 2.5s var(--ease-out) forwards;
     }
 
     @keyframes fillText { to { clip-path: inset(0 0 0 0); } }
 
-    .loader-bar-container {
-      width: 200px; height: 2px; background: rgba(255,255,255,0.1);
-      margin-top: 2rem; position: relative; overflow: hidden;
+    /* ==========================================================================
+       4. GLOBAL NAVIGATION
+       ========================================================================== */
+    nav {
+      position: fixed; top: 0; left: 0; width: 100%; padding: 2rem var(--spacing-md);
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 100; mix-blend-mode: difference;
     }
-    
-    .loader-bar {
-      height: 100%; background: var(--color-accent); width: 0%;
-      transition: width 0.1s linear;
+
+    .brand {
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: -1px;
     }
+
+    .nav-status {
+      display: flex; gap: 2rem; font-size: 0.85rem; text-transform: uppercase;
+      font-weight: 500; letter-spacing: 1px; color: var(--color-text);
+    }
+
+    .pulse {
+      display: inline-block; width: 8px; height: 8px;
+      background: var(--color-accent); border-radius: 50%;
+      margin-right: 8px; box-shadow: 0 0 10px var(--color-accent);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     /* ==========================================================================
        5. SMOOTH SCROLL CONTAINER
@@ -161,212 +153,146 @@
     }
 
     /* ==========================================================================
-       6. NAVIGATION & FULLSCREEN MENU
-       ========================================================================== */
-    nav {
-      position: fixed; top: 0; width: 100%; padding: 2rem var(--spacing-md);
-      display: flex; justify-content: space-between; align-items: center;
-      z-index: 100; mix-blend-mode: difference;
-    }
-
-    .brand { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; }
-
-    .menu-toggle {
-      display: flex; flex-direction: column; gap: 6px; padding: 10px; cursor: none;
-    }
-
-    .menu-toggle .line {
-      width: 30px; height: 2px; background: var(--color-text);
-      transition: transform 0.4s var(--ease-in-out), opacity 0.4s;
-    }
-
-    body.menu-open .menu-toggle .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-    body.menu-open .menu-toggle .line:nth-child(2) { opacity: 0; }
-    body.menu-open .menu-toggle .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-
-    #fullscreen-menu {
-      position: fixed; inset: 0; background: var(--color-bg); z-index: 90;
-      display: flex; align-items: center; justify-content: center;
-      clip-path: circle(0% at 100% 0%);
-      transition: clip-path 1s var(--ease-in-out);
-    }
-
-    body.menu-open #fullscreen-menu { clip-path: circle(150% at 100% 0%); }
-
-    .menu-links {
-      display: flex; flex-direction: column; gap: 2rem; text-align: center;
-    }
-
-    .menu-link {
-      font-family: var(--font-display); font-size: 6vw; font-weight: 800;
-      text-transform: uppercase; color: transparent;
-      -webkit-text-stroke: 1px var(--color-muted);
-      text-decoration: none; position: relative;
-      transition: color 0.4s var(--ease-out), -webkit-text-stroke 0.4s;
-    }
-
-    .menu-link:hover { color: var(--color-text); -webkit-text-stroke: 0px transparent; }
-
-    /* ==========================================================================
-       7. HERO SECTION (SPLIT TEXT)
+       6. HERO SECTION
        ========================================================================== */
     .hero {
       height: 100vh; display: flex; flex-direction: column;
-      justify-content: center; padding: 0 var(--spacing-md);
-      position: relative;
+      justify-content: center; padding: 0 var(--spacing-md); position: relative;
     }
 
     .hero-title {
-      font-family: var(--font-display); font-size: clamp(4rem, 11vw, 14rem);
-      font-weight: 800; line-height: 0.9; text-transform: uppercase;
-      margin-bottom: 2rem;
+      font-family: var(--font-display); font-size: clamp(4rem, 12vw, 15rem);
+      font-weight: 800; line-height: 0.85; text-transform: uppercase;
+      margin-bottom: 2rem; letter-spacing: -0.04em;
     }
 
+    /* Staggered text reveal */
     .char {
-      display: inline-block; transform: translateY(110%) rotate(10deg);
+      display: inline-block; transform: translateY(120%) rotate(15deg);
       opacity: 0; transition: transform 1s var(--ease-out), opacity 1s;
     }
     
     body.ready .char { transform: translateY(0) rotate(0deg); opacity: 1; }
 
-    .hero-meta {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      max-width: 600px; margin-left: auto; border-top: 1px solid rgba(255,255,255,0.2);
-      padding-top: 2rem; opacity: 0; transform: translateY(20px);
+    .hero-subtitle {
+      max-width: 500px; font-size: 1.1rem; color: var(--color-muted);
+      line-height: 1.6; font-weight: 400; margin-left: auto;
+      opacity: 0; transform: translateY(20px);
       transition: opacity 1s 1s, transform 1s 1s;
     }
-
-    body.ready .hero-meta { opacity: 1; transform: translateY(0); }
+    
+    body.ready .hero-subtitle { opacity: 1; transform: translateY(0); }
 
     /* ==========================================================================
-       8. MARQUEE PHYSICS
+       7. HORIZONTAL SCROLL HIJACK (THE NEW LAYOUT)
        ========================================================================== */
-    .marquee-wrapper {
-      padding: var(--spacing-md) 0; border-top: 1px solid rgba(255,255,255,0.1);
-      border-bottom: 1px solid rgba(255,255,255,0.1); overflow: hidden;
-      background: var(--color-surface); transform: rotate(-1deg) scale(1.05);
+    /* This container forces the body to have enough height to scroll */
+    .horizontal-section {
+      position: relative;
+      height: 400vh; /* 4 screens worth of scrolling to view all horizontal cards */
+      background: var(--color-bg);
     }
 
-    .marquee-track {
-      display: flex; white-space: nowrap; width: max-content;
+    .sticky-wrapper {
+      position: sticky; top: 0; height: 100vh; width: 100%;
+      overflow: hidden; display: flex; align-items: center;
     }
 
-    .marquee-item {
-      font-family: var(--font-display); font-size: 5rem; font-weight: 700;
-      text-transform: uppercase; padding: 0 3rem; color: transparent;
-      -webkit-text-stroke: 1px var(--color-text);
-      display: inline-flex; align-items: center; gap: 3rem;
+    /* The track that moves left and right */
+    .horizontal-track {
+      display: flex; gap: 8vw; padding: 0 var(--spacing-md);
+      height: 70vh; will-change: transform;
     }
 
-    .marquee-item span { color: var(--color-accent); -webkit-text-stroke: 0; font-size: 3rem; }
-
-    /* ==========================================================================
-       9. ADVANCED GRID & MAGNETIC BUTTONS
-       ========================================================================== */
-    .capabilities { padding: var(--spacing-lg) var(--spacing-md); }
-    
-    .section-title {
-      font-family: var(--font-display); font-size: 2rem; font-weight: 700;
-      margin-bottom: var(--spacing-md); text-transform: uppercase;
-      letter-spacing: 2px; color: var(--color-muted);
+    /* Individual Game Cards */
+    .game-card {
+      position: relative; width: 65vw; min-width: 800px; height: 100%;
+      flex-shrink: 0; display: block; text-decoration: none; color: var(--color-text);
+      /* Clipping for premium image reveal */
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 1.5s var(--ease-out);
     }
 
-    .grid-2 {
-      display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);
+    .game-card.in-view { clip-path: inset(0 0 0 0); }
+
+    .game-image-wrapper {
+      width: 100%; height: 100%; overflow: hidden; position: relative;
     }
 
-    .service-card {
-      padding: 4rem 3rem; background: var(--color-surface); border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;
-      transition: background 0.4s;
-    }
-
-    .service-card:hover { background: rgba(255, 42, 0, 0.05); border-color: rgba(255, 42, 0, 0.2); }
-
-    .service-index {
-      font-family: var(--font-display); font-size: 1rem; color: var(--color-accent);
-      margin-bottom: 2rem; display: block;
-    }
-
-    .service-title { font-size: 2.5rem; font-weight: 400; margin-bottom: 1.5rem; }
-    
-    .magnetic-btn {
-      display: inline-flex; justify-content: center; align-items: center;
-      width: 120px; height: 120px; border-radius: 50%;
-      background: transparent; border: 1px solid var(--color-muted);
-      color: var(--color-text); text-decoration: none; font-size: 0.9rem;
-      text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
-      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.4s, border 0.4s;
+    .game-image {
+      width: 100%; height: 100%; object-fit: cover;
+      transform: scale(1.2); filter: grayscale(100%) contrast(1.2);
+      transition: transform 1s var(--ease-out), filter 0.8s;
       will-change: transform;
     }
 
-    .magnetic-btn:hover {
-      background: var(--color-accent); border-color: var(--color-accent);
+    .game-card:hover .game-image { transform: scale(1); filter: grayscale(0%) contrast(1); }
+
+    /* Massive background numbers */
+    .game-index {
+      position: absolute; top: -5%; right: -5%;
+      font-family: var(--font-display); font-size: 30vw; font-weight: 800;
+      color: rgba(255,255,255,0.03); line-height: 0.8; z-index: 0; pointer-events: none;
     }
 
-    /* ==========================================================================
-       10. PROJECT SHOWCASE (PARALLAX IMAGES)
-       ========================================================================== */
-    .projects { padding: var(--spacing-lg) var(--spacing-md); }
-
-    .project-row {
-      display: grid; grid-template-columns: 4fr 6fr; gap: 5vw;
-      align-items: center; margin-bottom: var(--spacing-lg);
-      opacity: 0; transform: translateY(100px);
-      transition: opacity 1s var(--ease-out), transform 1s var(--ease-out);
+    .game-info {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      padding: 3rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      z-index: 10; display: flex; justify-content: space-between; align-items: flex-end;
     }
 
-    .project-row.visible { opacity: 1; transform: translateY(0); }
-    .project-row:nth-child(even) { grid-template-columns: 6fr 4fr; }
-    .project-row:nth-child(even) .project-visual { order: 2; }
-
-    .project-visual {
-      height: 80vh; overflow: hidden; border-radius: 4px; position: relative;
+    .game-title {
+      font-family: var(--font-display); font-size: 5rem; font-weight: 800;
+      line-height: 1; text-transform: uppercase; margin-bottom: 1rem;
     }
 
-    /* Parallax image scaling */
-    .project-visual img {
-      width: 100%; height: 120%; object-fit: cover;
-      transform: translateY(-10%); filter: grayscale(100%);
-      transition: filter 0.8s, transform 0.8s;
-    }
-
-    .project-row:hover .project-visual img { filter: grayscale(0%); transform: translateY(-10%) scale(1.05); }
-
-    .project-data h3 {
-      font-family: var(--font-display); font-size: 4rem; font-weight: 800;
-      line-height: 1; margin-bottom: 2rem; text-transform: uppercase;
-    }
-
-    .tech-stack {
-      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem;
-    }
-
-    .tech-tag {
-      padding: 8px 16px; border: 1px solid var(--color-muted);
+    .game-tags { display: flex; gap: 1rem; }
+    
+    .game-tag {
+      padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.2);
       border-radius: 50px; font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 1px; backdrop-filter: blur(5px);
     }
+
+    .launch-btn {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--color-accent); color: var(--color-bg);
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.4s var(--ease-out);
+    }
+
+    .launch-btn svg { width: 30px; height: 30px; transition: transform 0.4s; }
+    .game-card:hover .launch-btn { transform: scale(1.1); }
+    .game-card:hover .launch-btn svg { transform: translateX(5px) rotate(45deg); }
 
     /* ==========================================================================
-       11. MASSIVE FOOTER
+       8. OUTRO / FOOTER
        ========================================================================== */
-    footer {
-      padding: var(--spacing-lg) var(--spacing-md) 2rem;
-      background: var(--color-surface); border-top: 1px solid rgba(255,255,255,0.05);
-      position: relative; overflow: hidden;
+    .outro {
+      height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
+      background: var(--color-surface); padding: 0 var(--spacing-md);
+      position: relative; z-index: 2;
     }
 
-    .footer-huge-text {
-      font-family: var(--font-display); font-size: 18vw; font-weight: 800;
-      line-height: 0.8; text-transform: uppercase; text-align: center;
-      margin-bottom: var(--spacing-md); color: rgba(255,255,255,0.02);
+    .outro-title {
+      font-family: var(--font-display); font-size: clamp(3rem, 8vw, 10rem);
+      font-weight: 800; text-transform: uppercase; color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.2); transition: color 0.4s;
     }
 
-    .footer-bottom {
+    .outro-title:hover { color: var(--color-text); -webkit-text-stroke: 0; }
+
+    .footer-bar {
+      position: absolute; bottom: 0; width: 100%; padding: 2rem var(--spacing-md);
       display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 2rem; font-size: 0.9rem; color: var(--color-muted);
+      font-size: 0.85rem; color: var(--color-muted); text-transform: uppercase;
     }
 
+    @media (max-width: 1024px) {
+      .game-card { width: 85vw; min-width: 0; }
+      .game-title { font-size: 3rem; }
+    }
   </style>
 </head>
 <body>
@@ -378,139 +304,109 @@
   <div class="cursor-dot"></div>
   <div class="cursor-follower"></div>
 
-  <!-- Custom OS Context Menu -->
-  <div id="context-menu">
-    <div class="context-item hover-trigger">Copy Coordinates <span>⌘C</span></div>
-    <div class="context-item hover-trigger">Inspect Source <span>⌥⌘I</span></div>
-    <div class="context-item hover-trigger">Reload Instance <span>⌘R</span></div>
-  </div>
-
   <!-- Cinematic Preloader -->
   <div id="preloader">
     <div class="loader-counter" data-count="000">000</div>
-    <div class="loader-bar-container"><div class="loader-bar"></div></div>
-  </div>
-
-  <!-- Fullscreen Nav Overlay -->
-  <div id="fullscreen-menu">
-    <div class="menu-links">
-      <a href="#" class="menu-link hover-trigger">01. Index</a>
-      <a href="#" class="menu-link hover-trigger">02. Archive</a>
-      <a href="#" class="menu-link hover-trigger">03. Systems</a>
-      <a href="#" class="menu-link hover-trigger">04. Transmission</a>
-    </div>
   </div>
 
   <nav>
     <div class="brand hover-trigger">Scriptcade</div>
-    <div class="menu-toggle hover-trigger" id="menu-btn">
-      <div class="line"></div><div class="line"></div><div class="line"></div>
+    <div class="nav-status">
+      <div><span class="pulse"></span> System Active</div>
+      <div>V 5.0</div>
     </div>
   </nav>
 
   <!-- Lerp Scroll Container -->
   <div id="scroll-container">
     
+    <!-- SECTION 1: HERO -->
     <header class="hero">
       <h1 class="hero-title js-split-text">Scriptcade</h1>
       <h1 class="hero-title js-split-text" style="color: var(--color-muted);">Engine</h1>
-      <div class="hero-meta">
-        <div>
-          <p>Status: Online</p>
-          <p>Version: 4.0.1</p>
-        </div>
-        <a href="#projects" class="magnetic-btn hover-trigger">Explore</a>
-      </div>
+      <p class="hero-subtitle">
+        A curated horizontal archive of interactive digital modules, procedural logic, and kinematic engineering. Scroll to deploy.
+      </p>
     </header>
 
-    <div class="marquee-wrapper">
-      <div class="marquee-track" id="marquee">
-        <!-- Injected via JS for infinite loop -->
-      </div>
-    </div>
-
-    <section class="capabilities">
-      <h2 class="section-title">Core Architecture</h2>
-      <div class="grid-2">
-        <div class="service-card hover-trigger">
-          <span class="service-index">01</span>
-          <h3 class="service-title">Neural Logic</h3>
-          <p style="color: var(--color-muted); line-height: 1.6;">Advanced state management and procedural generation parameters for immersive storytelling nodes.</p>
-        </div>
-        <div class="service-card hover-trigger">
-          <span class="service-index">02</span>
-          <h3 class="service-title">Holo Interfaces</h3>
-          <p style="color: var(--color-muted); line-height: 1.6;">WebGL driven components utilizing custom fragment and vertex shaders for real-time glass refractions.</p>
+    <!-- SECTION 2: HORIZONTAL SCROLL HIJACK -->
+    <section class="horizontal-section" id="hz-section">
+      <div class="sticky-wrapper">
+        <div class="horizontal-track" id="hz-track">
+          <!-- Game Cards Injected Here via JS -->
         </div>
       </div>
     </section>
 
-    <section class="projects" id="projects">
-      <h2 class="section-title">Deployment Logs</h2>
-      <div id="project-list">
-        <!-- Injected via JS -->
+    <!-- SECTION 3: OUTRO -->
+    <section class="outro">
+      <h2 class="outro-title hover-trigger">End Transmission</h2>
+      <div class="footer-bar">
+        <span>© 2026 Scriptcade Industries</span>
+        <span>All Systems Operational</span>
       </div>
     </section>
-
-    <footer>
-      <div class="footer-huge-text">System</div>
-      <div class="footer-bottom">
-        <span>© 2026 Scriptcade</span>
-        <span>Lat: 34.0522 N / Long: 118.2437 W</span>
-      </div>
-    </footer>
 
   </div>
 
   <script>
     /**
      * ==========================================================================
-     * 1. DATA INJECTION & DOM SETUP
+     * 1. DATA CONFIGURATION & DOM INJECTION
      * ==========================================================================
      */
-    const projectData = [
+    const games = [
       {
         title: "Doodle Glider",
-        desc: "A singular prompt execution creating a fully playable kinematic glider experience.",
-        img: "Doodleglider.png",
-        tech: ["Physics", "Canvas", "A.I. Logic"]
+        tags: ["Physics", "One-Prompt", "Canvas"],
+        img: "Doodleglider.png", 
+        url: "https://relthecreator.github.io/Doodle-Glider/"
       },
       {
         title: "Neon Protocol",
-        desc: "Cybernetic UI simulation with heavy data-binding and WebSocket streams.",
-        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400",
-        tech: ["WebGL", "React", "Node"]
+        tags: ["Cybernetic", "Simulation", "WebGL"],
+        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1600",
+        url: "#"
       },
       {
         title: "Terminal 04",
-        desc: "A brute-force aesthetic logic core meant to stress test visual boundaries.",
-        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400",
-        tech: ["GLSL", "Three.js", "GSAP"]
+        tags: ["Logic Core", "Brutalist", "React"],
+        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1600",
+        url: "#"
+      },
+      {
+        title: "Echo Chamber",
+        tags: ["Narrative", "A.I.", "Data"],
+        img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600",
+        url: "#"
       }
     ];
 
-    const projectList = document.getElementById('project-list');
-    projectList.innerHTML = projectData.map(p => `
-      <div class="project-row js-observe">
-        <div class="project-visual">
-          <img src="${p.img}" alt="${p.title}" class="parallax-img">
+    const track = document.getElementById('hz-track');
+    
+    track.innerHTML = games.map((game, index) => `
+      <a href="${game.url}" class="game-card hz-drag-target" target="_blank">
+        <div class="game-index">0${index + 1}</div>
+        <div class="game-image-wrapper">
+          <img src="${game.img}" alt="${game.title}" class="game-image parallax-img">
         </div>
-        <div class="project-data">
-          <h3>${p.title}</h3>
-          <div class="tech-stack">
-            ${p.tech.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+        <div class="game-info">
+          <div>
+            <h2 class="game-title">${game.title}</h2>
+            <div class="game-tags">
+              ${game.tags.map(tag => `<span class="game-tag">${tag}</span>`).join('')}
+            </div>
           </div>
-          <p style="color: var(--color-muted); margin-bottom: 2rem;">${p.desc}</p>
-          <a href="#" class="magnetic-btn hover-trigger">Initialize</a>
+          <div class="launch-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
         </div>
-      </div>
+      </a>
     `).join('');
 
-    // Marquee Duplication
-    const marqueeTxt = "<div class="marquee-item">Creative Engineering <span>✦</span> Digital Physics <span>✦</span> Fluid Interfaces <span>✦</span> </div>";
-    document.getElementById('marquee').innerHTML = marqueeTxt.repeat(4);
-
-    // Split Text for Hero Animation
+    // Split Text Logic for Hero
     document.querySelectorAll('.js-split-text').forEach(el => {
       const text = el.innerText;
       el.innerHTML = '';
@@ -518,14 +414,14 @@
         const span = document.createElement('span');
         span.innerText = char === ' ' ? '\u00A0' : char;
         span.className = 'char';
-        span.style.transitionDelay = `${(i * 0.04) + 1.5}s`; // Offset past preloader
+        span.style.transitionDelay = `${(i * 0.03) + 1.2}s`; 
         el.appendChild(span);
       });
     });
 
     /**
      * ==========================================================================
-     * 2. SYNTHETIC AUDIO ENGINE (WEB AUDIO API)
+     * 2. SYNTHETIC AUDIO ENGINE
      * ==========================================================================
      */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -535,10 +431,10 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime); // High pitched blip
-      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very quiet
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.02, audioCtx.currentTime); 
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
       osc.connect(gain); gain.connect(audioCtx.destination);
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
@@ -546,62 +442,89 @@
 
     /**
      * ==========================================================================
-     * 3. PRELOADER SEQUENCE
+     * 3. SYSTEM PRELOADER
      * ==========================================================================
      */
     let loadCount = 0;
     const counterEl = document.querySelector('.loader-counter');
-    const barEl = document.querySelector('.loader-bar');
     const preloader = document.getElementById('preloader');
     
     const loadInterval = setInterval(() => {
-      loadCount += Math.floor(Math.random() * 8) + 1;
+      loadCount += Math.floor(Math.random() * 6) + 1;
       if (loadCount >= 100) {
         loadCount = 100;
         clearInterval(loadInterval);
         setTimeout(() => {
           preloader.classList.add('complete');
           document.body.classList.add('ready');
-        }, 400);
+        }, 500);
       }
-      
       const formatted = loadCount.toString().padStart(3, '0');
       counterEl.innerText = formatted;
       counterEl.setAttribute('data-count', formatted);
-      barEl.style.width = `${loadCount}%`;
-    }, 30);
+    }, 20);
 
     /**
      * ==========================================================================
-     * 4. SMOOTH MOMENTUM SCROLLING (LERP)
+     * 4. SMOOTH SCROLL & HORIZONTAL MATH (THE CORE ENGINE)
      * ==========================================================================
      */
     const scrollContainer = document.getElementById('scroll-container');
+    const hzSection = document.getElementById('hz-section');
+    const hzTrack = document.getElementById('hz-track');
+    const cards = document.querySelectorAll('.game-card');
+    
     let currentScroll = 0;
     let targetScroll = 0;
-    let ease = 0.08; // The "weight" of the scroll
-
-    document.body.style.height = `${scrollContainer.getBoundingClientRect().height}px`;
-
-    window.addEventListener('scroll', () => { targetScroll = window.scrollY; });
-    window.addEventListener('resize', () => { 
+    let ease = 0.07; // Momentum weight
+    
+    // Calculate total body height based on the fixed scroll container
+    function updateHeight() {
       document.body.style.height = `${scrollContainer.getBoundingClientRect().height}px`;
-    });
+    }
+    
+    // We must wait a frame for DOM rendering before calculating height
+    setTimeout(updateHeight, 100);
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('scroll', () => { targetScroll = window.scrollY; });
 
     function smoothScroll() {
+      // Linear Interpolation (Lerp) for buttery scrolling
       currentScroll += (targetScroll - currentScroll) * ease;
-      scrollContainer.style.transform = `translate3d(0, -${currentScroll.toFixed(2)}px, 0)`;
       
-      // Infinite Marquee integration
-      const marquee = document.getElementById('marquee');
-      marquee.style.transform = `translate3d(-${(currentScroll * 0.2) % 50}%, 0, 0)`;
+      // Calculate Scroll Velocity for Skew Effects
+      const velocity = targetScroll - currentScroll;
+      const skew = velocity * 0.02;
+      
+      // 1. Move the main vertical container
+      scrollContainer.style.transform = `translate3d(0, -${currentScroll.toFixed(2)}px, 0)`;
 
-      // Parallax Images
-      document.querySelectorAll('.parallax-img').forEach(img => {
-        const speed = 0.05;
-        const yPos = (targetScroll * speed);
-        img.style.transform = `translate3d(0, ${yPos}px, 0) scale(1.1)`;
-      });
+      // 2. HORIZONTAL SCROLL MATH
+      const hzRect = hzSection.getBoundingClientRect();
+      const scrollProgress = -hzRect.top / (hzRect.height - window.innerHeight);
+      
+      // Check if we are inside the horizontal section bounds
+      if (scrollProgress >= 0 && scrollProgress <= 1) {
+        // Calculate max scroll distance based on track width vs screen width
+        const maxScroll = hzTrack.scrollWidth - window.innerWidth + (window.innerWidth * 0.1);
+        const xMove = scrollProgress * maxScroll;
+        
+        // Apply transform: move track left, and apply velocity skew
+        hzTrack.style.transform = `translate3d(-${xMove}px, 0, 0) skewX(${skew}deg)`;
+        
+        // Parallax inside the horizontal images
+        document.querySelectorAll('.parallax-img').forEach(img => {
+          img.style.transform = `translate3d(${xMove * 0.1}px, 0, 0) scale(1.2)`;
+        });
+
+        // Trigger reveal animations for cards when they enter screen
+        cards.forEach(card => {
+          const cardRect = card.getBoundingClientRect();
+          if (cardRect.left < window.innerWidth * 0.8) {
+            card.classList.add('in-view');
+          }
+        });
+      }
 
       requestAnimationFrame(smoothScroll);
     }
@@ -609,7 +532,7 @@
 
     /**
      * ==========================================================================
-     * 5. PHYSICS CURSOR & MAGNETIC BUTTONS
+     * 5. PHYSICS CURSOR
      * ==========================================================================
      */
     const cursorDot = document.querySelector('.cursor-dot');
@@ -623,15 +546,15 @@
     });
 
     function animateCursor() {
-      followerX += (mouseX - followerX) * 0.15;
-      followerY += (mouseY - followerY) * 0.15;
+      followerX += (mouseX - followerX) * 0.2;
+      followerY += (mouseY - followerY) * 0.2;
       cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
       requestAnimationFrame(animateCursor);
     }
     animateCursor();
 
-    // Hover interactions + Audio trigger
-    document.querySelectorAll('.hover-trigger, a, button').forEach(el => {
+    // Standard Hovers
+    document.querySelectorAll('.hover-trigger').forEach(el => {
       el.addEventListener('mouseenter', () => {
         cursorFollower.classList.add('active');
         playHoverSound();
@@ -639,99 +562,42 @@
       el.addEventListener('mouseleave', () => cursorFollower.classList.remove('active'));
     });
 
-    // Advanced Magnetic Math for circular buttons
-    document.querySelectorAll('.magnetic-btn').forEach(btn => {
-      btn.addEventListener('mousemove', (e) => {
-        const rect = btn.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const distanceX = e.clientX - centerX;
-        const distanceY = e.clientY - centerY;
-        
-        // Move button towards cursor (max 20px radius)
-        btn.style.transform = `translate3d(${distanceX * 0.3}px, ${distanceY * 0.3}px, 0)`;
+    // Custom "Drag" state for the horizontal cards
+    document.querySelectorAll('.hz-drag-target').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorFollower.classList.add('drag');
+        playHoverSound();
       });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.transform = `translate3d(0, 0, 0)`;
-      });
+      el.addEventListener('mouseleave', () => cursorFollower.classList.remove('drag'));
     });
 
     /**
      * ==========================================================================
-     * 6. CUSTOM CONTEXT MENU (RIGHT CLICK)
-     * ==========================================================================
-     */
-    const contextMenu = document.getElementById('context-menu');
-    
-    window.addEventListener('contextmenu', (e) => {
-      e.preventDefault(); // Disable default browser menu
-      contextMenu.style.left = `${e.clientX}px`;
-      contextMenu.style.top = `${e.clientY}px`;
-      contextMenu.classList.add('show');
-      cursorFollower.classList.add('menu-active');
-    });
-
-    window.addEventListener('click', () => {
-      contextMenu.classList.remove('show');
-      cursorFollower.classList.remove('menu-active');
-    });
-
-    /**
-     * ==========================================================================
-     * 7. HTML5 CANVAS FILM GRAIN
+     * 6. HTML5 CANVAS FILM GRAIN
      * ==========================================================================
      */
     const canvas = document.getElementById('grain-canvas');
     const ctx = canvas.getContext('2d', { alpha: true });
-    let w, h;
-    let grainData;
+    let w, h, grainData;
 
-    function resizeCanvas() {
+    function initGrain() {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
       grainData = ctx.createImageData(w, h);
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', initGrain);
+    initGrain();
 
-    function drawGrain() {
+    function renderGrain() {
       const buffer = new Uint32Array(grainData.data.buffer);
       for (let i = 0; i < buffer.length; i++) {
-        // Generate monochrome noise (black and white pixels randomly)
-        const v = Math.random() < 0.5 ? 0xFFFFFFFF : 0xFF000000;
-        buffer[i] = v;
+        // High speed monochrome noise computation
+        buffer[i] = Math.random() < 0.5 ? 0xFFFFFFFF : 0xFF000000;
       }
       ctx.putImageData(grainData, 0, 0);
-      requestAnimationFrame(drawGrain);
+      requestAnimationFrame(renderGrain);
     }
-    drawGrain();
-
-    /**
-     * ==========================================================================
-     * 8. INTERSECTION OBSERVER (REVEALS)
-     * ==========================================================================
-     */
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.2 });
-
-    document.querySelectorAll('.js-observe').forEach(el => observer.observe(el));
-
-    /**
-     * ==========================================================================
-     * 9. FULLSCREEN MENU TOGGLE
-     * ==========================================================================
-     */
-    const menuBtn = document.getElementById('menu-btn');
-    menuBtn.addEventListener('click', () => {
-      document.body.classList.toggle('menu-open');
-      playHoverSound();
-    });
+    renderGrain();
 
   </script>
 </body>
