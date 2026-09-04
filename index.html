@@ -1,604 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCRIPT CADE | Monolith V3</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    /* ==========================================================================
-       1. CORE ARCHITECTURE & VARIABLES
-       ========================================================================== */
-    :root {
-      --color-bg: #030303;
-      --color-text: #fdfdfd;
-      --color-muted: #666666;
-      --color-accent: #ff3300; /* High-voltage industrial orange */
-      --color-surface: #0a0a0a;
-      
-      --font-display: 'Syne', sans-serif;
-      --font-ui: 'Inter', sans-serif;
-      
-      --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
-      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-      
-      --spacing-sm: 2vw;
-      --spacing-md: 5vw;
-      --spacing-lg: 10vw;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6853980997029870" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptCade</title> 
+    <link rel="icon" type="image/png" href="favicon.png">
     
-    html { font-size: 16px; background: var(--color-bg); overscroll-behavior: none; }
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
 
-    body {
-      color: var(--color-text);
-      font-family: var(--font-ui);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow: hidden; /* Scroll is handled by JS Lerp */
-      cursor: none;
-      user-select: none;
-      background: var(--color-bg);
-    }
+    <style>
+        :root { 
+            --bg-base: #030305; 
+            --bg-surface: rgba(20, 20, 25, 0.4); 
+            --accent-primary: #00f0ff; 
+            --accent-secondary: #ff0055;
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
+            --card-radius: 16px;
+        }
 
-    ::selection { background: var(--color-accent); color: var(--color-bg); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    /* ==========================================================================
-       2. CANVAS GRAIN & CUSTOM PHYSICS CURSOR
-       ========================================================================== */
-    #grain-canvas {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: 9999; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
-    }
+        body { 
+            background-color: var(--bg-base); 
+            color: var(--text-main); 
+            font-family: 'Outfit', system-ui, sans-serif; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-    .cursor-dot, .cursor-follower {
-      position: fixed; top: 0; left: 0;
-      border-radius: 50%; z-index: 10000;
-      pointer-events: none; transform: translate3d(-50%, -50%, 0);
-    }
+        /* Animated Background Orbs */
+        .bg-orbs {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; pointer-events: none; overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #030305 0%, #000000 100%);
+        }
+        .bg-orbs::before, .bg-orbs::after {
+            content: ''; position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.15;
+            animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bg-orbs::before {
+            width: 60vw; height: 60vw; background: var(--accent-primary);
+            top: -10%; left: -10%;
+        }
+        .bg-orbs::after {
+            width: 50vw; height: 50vw; background: var(--accent-secondary);
+            bottom: -10%; right: -10%; animation-delay: -10s;
+        }
 
-    .cursor-dot { width: 4px; height: 4px; background: var(--color-accent); }
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(10%, 15%); }
+        }
 
-    .cursor-follower {
-      width: 40px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), 
-                  background 0.4s var(--ease-out), border 0.4s var(--ease-out);
-    }
+        /* -----------------------------------
+           LANDING MENU
+           ----------------------------------- */
+        #landing-screen { 
+            position: fixed; inset: 0; 
+            background: rgba(3,3,5,0.85); backdrop-filter: blur(20px);
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.8s;
+        }
+        
+        .landing-content {
+            text-align: center; opacity: 0; transform: translateY(40px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        }
 
-    .cursor-follower.active {
-      width: 100px; height: 100px;
-      background: var(--color-text); border-color: transparent;
-      mix-blend-mode: difference;
-    }
+        .logo-placeholder {
+            width: 400px; max-width: 80vw; margin-bottom: 50px;
+            filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.4));
+            animation: pulseGlow 4s infinite alternate;
+        }
 
-    .cursor-follower.drag {
-      width: 80px; height: 80px; border-color: var(--color-accent);
-      background: rgba(255, 51, 0, 0.1); backdrop-filter: blur(4px);
-    }
-    
-    /* Drag Text Indicator inside cursor */
-    .cursor-follower::after {
-      content: 'DRAG'; position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); font-size: 10px; font-weight: 700;
-      letter-spacing: 2px; color: var(--color-accent); opacity: 0;
-      transition: opacity 0.3s; font-family: var(--font-display);
-    }
-    
-    .cursor-follower.drag::after { opacity: 1; }
+        .enter-btn { 
+            padding: 18px 60px; font-size: 1.2rem; font-weight: 900; letter-spacing: 4px;
+            color: #fff; background: transparent; 
+            border: 2px solid var(--accent-primary); border-radius: 50px; cursor: pointer; 
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(0, 240, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-transform: uppercase; position: relative; overflow: hidden;
+        }
+        
+        .enter-btn:hover { 
+            transform: translateY(-5px); 
+            background: var(--accent-primary); color: #000;
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.6);
+            letter-spacing: 6px;
+        }
 
-    /* ==========================================================================
-       3. SYSTEM PRELOADER
-       ========================================================================== */
-    #preloader {
-      position: fixed; inset: 0; background: var(--color-bg); z-index: 9000;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1);
-    }
+        /* -----------------------------------
+           MAIN ARCADE CONTAINER
+           ----------------------------------- */
+        #arcade-container {
+            padding: 60px 4vw; max-width: 1600px; margin: 0 auto;
+            display: none; opacity: 0;
+            transition: opacity 1s ease;
+        }
 
-    #preloader.complete { transform: translateY(-100%); }
+        .app-title {
+            text-align: center; font-size: clamp(3rem, 6vw, 5rem); font-weight: 900; letter-spacing: 6px;
+            margin-bottom: 80px; text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 50%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0,240,255,0.3));
+        }
 
-    .loader-counter {
-      font-family: var(--font-display); font-size: 18vw; font-weight: 800;
-      line-height: 1; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.1);
-      position: relative;
-    }
+        .section-title { 
+            font-size: 1.8rem; font-weight: 800; margin-bottom: 30px; 
+            display: flex; align-items: center; gap: 15px; letter-spacing: 2px;
+        }
+        
+        .section-title::after {
+            content: ''; flex: 1; height: 1px; 
+            background: linear-gradient(90deg, currentColor, transparent); opacity: 0.3;
+        }
 
-    .loader-counter::after {
-      content: attr(data-count); position: absolute; top: 0; left: 0;
-      color: var(--color-text); -webkit-text-stroke: 0; clip-path: inset(100% 0 0 0);
-      animation: fillText 2.5s var(--ease-out) forwards;
-    }
+        /* -----------------------------------
+           GAME CARDS (Base Styles)
+           ----------------------------------- */
+        .slot { 
+            background: var(--bg-surface); border-radius: var(--card-radius); 
+            border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            position: relative; overflow: hidden; cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0; transform: translateY(30px);
+        }
 
-    @keyframes fillText { to { clip-path: inset(0 0 0 0); } }
+        .slot::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
+            z-index: 1; opacity: 0.8; transition: opacity 0.5s;
+        }
 
-    /* ==========================================================================
-       4. GLOBAL NAVIGATION
-       ========================================================================== */
-    nav {
-      position: fixed; top: 0; left: 0; width: 100%; padding: 2rem var(--spacing-md);
-      display: flex; justify-content: space-between; align-items: center;
-      z-index: 100; mix-blend-mode: difference;
-    }
+        .slot:hover { 
+            transform: translateY(-10px); 
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(0, 240, 255, 0.1); 
+        }
 
-    .brand {
-      font-family: var(--font-display); font-size: 1.5rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: -1px;
-    }
+        .slot:hover::before { opacity: 1; }
 
-    .nav-status {
-      display: flex; gap: 2rem; font-size: 0.85rem; text-transform: uppercase;
-      font-weight: 500; letter-spacing: 1px; color: var(--color-text);
-    }
+        .thumbnail-area { 
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background-color: #111; background-size: cover; background-position: center; 
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 0;
+        }
+        
+        .slot:hover .thumbnail-area { transform: scale(1.1); }
 
-    .pulse {
-      display: inline-block; width: 8px; height: 8px;
-      background: var(--color-accent); border-radius: 50%;
-      margin-right: 8px; box-shadow: 0 0 10px var(--color-accent);
-      animation: blink 2s infinite;
-    }
+        .badge { 
+            position: absolute; top: 20px; right: 20px; padding: 6px 14px; 
+            border-radius: 30px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 2; backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase;
+        }
 
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .slot-info {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 25px; z-index: 2; display: flex; flex-direction: column; gap: 15px;
+            transform: translateY(10px); transition: transform 0.4s ease;
+        }
 
-    /* ==========================================================================
-       5. SMOOTH SCROLL CONTAINER
-       ========================================================================== */
-    #scroll-container {
-      position: fixed; top: 0; left: 0; width: 100%;
-      will-change: transform;
-    }
+        .slot:hover .slot-info { transform: translateY(0); }
 
-    /* ==========================================================================
-       6. HERO SECTION
-       ========================================================================== */
-    .hero {
-      height: 100vh; display: flex; flex-direction: column;
-      justify-content: center; padding: 0 var(--spacing-md); position: relative;
-    }
+        .game-title { 
+            margin: 0; font-size: 1.5rem; font-weight: 800; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
 
-    .hero-title {
-      font-family: var(--font-display); font-size: clamp(4rem, 12vw, 15rem);
-      font-weight: 800; line-height: 0.85; text-transform: uppercase;
-      margin-bottom: 2rem; letter-spacing: -0.04em;
-    }
+        .btn-play { 
+            background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); 
+            padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 700; letter-spacing: 2px; 
+            width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;
+            backdrop-filter: blur(5px); transition: all 0.3s ease;
+            opacity: 0; transform: translateY(15px);
+        }
 
-    /* Staggered text reveal */
-    .char {
-      display: inline-block; transform: translateY(120%) rotate(15deg);
-      opacity: 0; transition: transform 1s var(--ease-out), opacity 1s;
-    }
-    
-    body.ready .char { transform: translateY(0) rotate(0deg); opacity: 1; }
+        .slot:hover .btn-play { opacity: 1; transform: translateY(0); }
+        
+        .btn-play:hover { 
+            background: #fff; color: #000; border-color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4); 
+        }
 
-    .hero-subtitle {
-      max-width: 500px; font-size: 1.1rem; color: var(--color-muted);
-      line-height: 1.6; font-weight: 400; margin-left: auto;
-      opacity: 0; transform: translateY(20px);
-      transition: opacity 1s 1s, transform 1s 1s;
-    }
-    
-    body.ready .hero-subtitle { opacity: 1; transform: translateY(0); }
+        /* -----------------------------------
+           LAYOUT 1: HOT GAMES (Horizontal Scroll)
+           ----------------------------------- */
+        #hot-section { margin-bottom: 80px; }
+        
+        .scroll-row {
+            display: flex; gap: 30px; overflow-x: auto; padding-bottom: 30px;
+            scroll-snap-type: x mandatory; scroll-behavior: smooth;
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        
+        .scroll-row::-webkit-scrollbar { display: none; }
 
-    /* ==========================================================================
-       7. HORIZONTAL SCROLL HIJACK (THE NEW LAYOUT)
-       ========================================================================== */
-    /* This container forces the body to have enough height to scroll */
-    .horizontal-section {
-      position: relative;
-      height: 400vh; /* 4 screens worth of scrolling to view all horizontal cards */
-      background: var(--color-bg);
-    }
+        .scroll-row .slot {
+            flex: 0 0 600px; /* Wider, cinematic cards */
+            height: 350px; scroll-snap-align: start;
+        }
+        
+        .scroll-row .slot:hover { border-color: var(--accent-secondary); box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(255, 0, 85, 0.2); }
 
-    .sticky-wrapper {
-      position: sticky; top: 0; height: 100vh; width: 100%;
-      overflow: hidden; display: flex; align-items: center;
-    }
+        /* -----------------------------------
+           LAYOUT 2: ALL GAMES (Bento/Masonry Grid)
+           ----------------------------------- */
+        .game-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 30px; margin-bottom: 70px; 
+        }
+        
+        .game-grid .slot { height: 400px; /* Taller, portrait cards */ }
+        .game-grid .slot:hover { border-color: var(--accent-primary); }
 
-    /* The track that moves left and right */
-    .horizontal-track {
-      display: flex; gap: 8vw; padding: 0 var(--spacing-md);
-      height: 70vh; will-change: transform;
-    }
+        /* -----------------------------------
+           FULLSCREEN OVERLAY (Player)
+           ----------------------------------- */
+        #fullscreen-overlay { 
+            display: none; position: fixed; inset: 0; 
+            background: #000; z-index: 10000; flex-direction: column; 
+            animation: fadeIn 0.4s ease forwards;
+        }
+        
+        #game-header { 
+Here is a completely overhauled version of your code. I kept all of your underlying logic, game lists, and ad scripts exactly the same, but massively upgraded the visual design to give it a high-end, modern gaming/Web3 aesthetic. 
 
-    /* Individual Game Cards */
-    .game-card {
-      position: relative; width: 65vw; min-width: 800px; height: 100%;
-      flex-shrink: 0; display: block; text-decoration: none; color: var(--color-text);
-      /* Clipping for premium image reveal */
-      clip-path: inset(0 100% 0 0);
-      transition: clip-path 1.5s var(--ease-out);
-    }
+Here are the major visual upgrades included:
+*   **Animated Ambient Background:** The static radial gradients now slowly breathe and drift in the background.
+*   **Premium Glassmorphism:** The game cards now feature polished glass effects, better subtle borders, and deeper drop shadows.
+*   **Interactive Game Cards:** Hovering over a game card now slightly zooms the thumbnail, brightens the glass, and ignites a neon glow on the "Play" button.
+*   **Custom Scrollbar:** The default clunky browser scrollbar has been replaced with a sleek, neon-accented dark scrollbar.
+*   **Sleeker Fullscreen UI:** The top bar when playing a game now has a frosted glass effect and a much cleaner exit button.
+*   **Better Proportions:** Adjusted the grid spacing, thumbnail sizes (closer to a 16:9 ratio), and typography hierarchy to look professionally designed.
 
-    .game-card.in-view { clip-path: inset(0 0 0 0); }
+### The Upgraded Code:
 
-    .game-image-wrapper {
-      width: 100%; height: 100%; overflow: hidden; position: relative;
-    }
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="[https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6853980997029870](https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6853980997029870)"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptCade</title> 
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        @import url('[https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap](https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap)');
 
-    .game-image {
-      width: 100%; height: 100%; object-fit: cover;
-      transform: scale(1.2); filter: grayscale(100%) contrast(1.2);
-      transition: transform 1s var(--ease-out), filter 0.8s;
-      will-change: transform;
-    }
+        :root { 
+            --bg-base: #070709; 
+            --bg-surface: rgba(20, 20, 25, 0.4); 
+            --bg-surface-hover: rgba(30, 30, 40, 0.6);
+            --accent-primary: #00f0ff; 
+            --accent-primary-dim: rgba(0, 240, 255, 0.2);
+            --accent-secondary: #ff0055;
+            --accent-secondary-dim: rgba(255, 0, 85, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #94a1b2;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
 
-    .game-card:hover .game-image { transform: scale(1); filter: grayscale(0%) contrast(1); }
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #1a1a24; border-radius: 10px; border: 2px solid var(--bg-base); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary-dim); border-color: var(--accent-primary); }
 
-    /* Massive background numbers */
-    .game-index {
-      position: absolute; top: -5%; right: -5%;
-      font-family: var(--font-display); font-size: 30vw; font-weight: 800;
-      color: rgba(255,255,255,0.03); line-height: 0.8; z-index: 0; pointer-events: none;
-    }
+        body { 
+            background-color: var(--bg-base); 
+            color: var(--text-main); 
+            font-family: 'Outfit', system-ui, sans-serif; 
+            margin: 0; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-    .game-info {
-      position: absolute; bottom: 0; left: 0; width: 100%;
-      padding: 3rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-      z-index: 10; display: flex; justify-content: space-between; align-items: flex-end;
-    }
+        /* ANIMATED AMBIENT BACKGROUND */
+        body::before, body::after {
+            content: ''; position: fixed; width: 60vw; height: 60vw;
+            border-radius: 50%; z-index: -1; filter: blur(100px);
+            opacity: 0.15; animation: drift 15s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+        body::before {
+            background: radial-gradient(circle, var(--accent-primary) 0%, transparent 60%);
+            top: -10%; left: -10%;
+        }
+        body::after {
+            background: radial-gradient(circle, var(--accent-secondary) 0%, transparent 60%);
+            bottom: -20%; right: -10%;
+            animation-delay: -5s;
+        }
 
-    .game-title {
-      font-family: var(--font-display); font-size: 5rem; font-weight: 800;
-      line-height: 1; text-transform: uppercase; margin-bottom: 1rem;
-    }
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.1); }
+        }
 
-    .game-tags { display: flex; gap: 1rem; }
-    
-    .game-tag {
-      padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 50px; font-size: 0.8rem; text-transform: uppercase;
-      letter-spacing: 1px; backdrop-filter: blur(5px);
-    }
+        /* LANDING MENU */
+        #landing-screen { 
+            position: fixed; inset: 0; width: 100vw; height: 100vh; 
+            background: radial-gradient(circle at center, #111116 0%, var(--bg-base) 100%);
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #landing-screen::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(var(--glass-border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.3; z-index: -1;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
 
-    .launch-btn {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: var(--color-accent); color: var(--color-bg);
-      display: flex; justify-content: center; align-items: center;
-      transition: transform 0.4s var(--ease-out);
-    }
+        .landing-content {
+            text-align: center; opacity: 0; transform: translateY(40px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+            display: flex; flex-direction: column; align-items: center; gap: 40px;
+        }
+        .logo-placeholder {
+            width: 400px; max-width: 80vw;
+            filter: drop-shadow(0 0 30px var(--accent-primary-dim));
+            object-fit: contain;
+            transition: filter 0.3s ease;
+        }
+        .logo-placeholder:hover { filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.5)); }
+        
+        .enter-btn { 
+            padding: 16px 56px; font-size: 1.1rem; font-weight: 800; letter-spacing: 3px;
+            color: #000; background: var(--accent-primary); 
+            border: none; border-radius: 8px; cursor: pointer; 
+            box-shadow: 0 0 20px var(--accent-primary-dim), inset 0 0 10px rgba(255,255,255,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            text-transform: uppercase; position: relative; overflow: hidden;
+        }
+        .enter-btn::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg) translateY(-100%); transition: transform 0.6s ease;
+        }
+        .enter-btn:hover { 
+            transform: translateY(-3px) scale(1.05); 
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(255,255,255,0.8);
+            background: #fff;
+        }
+        .enter-btn:hover::after { transform: rotate(45deg) translateY(100%); }
 
-    .launch-btn svg { width: 30px; height: 30px; transition: transform 0.4s; }
-    .game-card:hover .launch-btn { transform: scale(1.1); }
-    .game-card:hover .launch-btn svg { transform: translateX(5px) rotate(45deg); }
+        /* ARCADE CONTAINER */
+        #arcade-container {
+            padding: 60px 5%; max-width: 1400px; margin: 0 auto;
+            display: none; opacity: 0; transition: opacity 1s ease;
+        }
+        .app-title {
+            text-align: center; font-size: 4rem; font-weight: 900; letter-spacing: 6px;
+            margin-bottom: 70px; text-transform: uppercase; margin-top: 0;
+            background: linear-gradient(135deg, var(--accent-primary), #fff, var(--accent-secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0,240,255,0.2));
+            animation: pulseGlow 4s infinite alternate;
+        }
 
-    /* ==========================================================================
-       8. OUTRO / FOOTER
-       ========================================================================== */
-    .outro {
-      height: 100vh; display: flex; flex-direction: column;
-      justify-content: center; align-items: center; text-align: center;
-      background: var(--color-surface); padding: 0 var(--spacing-md);
-      position: relative; z-index: 2;
-    }
+        /* GRID & SLOTS */
+        .section-title { 
+            font-size: 1.5rem; font-weight: 800; margin-bottom: 30px; 
+            display: flex; align-items: center; gap: 15px; letter-spacing: 2px;
+        }
+        .section-title::after {
+            content: ''; flex: 1; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, currentColor, transparent); opacity: 0.3;
+        }
+        
+        .game-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; margin-bottom: 80px; 
+        }
+        
+        .slot { 
+            background: var(--bg-surface); border-radius: 16px; overflow: hidden; 
+            border: 1px solid var(--glass-border); backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0; transform: translateY(30px);
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .slot:hover { 
+            transform: translateY(-8px); 
+            border-color: var(--accent-primary-dim);
+            background: var(--bg-surface-hover);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px var(--accent-primary-dim); 
+        }
+        
+        .thumbnail-area { 
+            height: 180px; background: #0a0a0a; background-size: cover; background-position: center; 
+            position: relative; cursor: pointer; overflow: hidden;
+        }
+        .thumbnail-area::after {
+            content: ''; position: absolute; inset: 0; 
+            background: linear-gradient(to bottom, transparent 30%, rgba(5,5,9,0.95) 100%);
+            transition: opacity 0.3s ease;
+        }
+        .slot:hover .thumbnail-area { background-size: 108%; transition: background-size 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .thumbnail-placeholder { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 4em; font-weight: 900; color: rgba(255,255,255,0.05); 
+        }
+        
+        .badge { 
+            position: absolute; top: 12px; right: 12px; padding: 6px 14px; border-radius: 6px; 
+            font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 2; 
+        }
+        
+        .slot-controls { 
+            padding: 20px; display: flex; flex-direction: column; gap: 15px; 
+            position: relative; z-index: 2; flex-grow: 1; justify-content: space-between;
+        }
+        .game-title { 
+            margin: 0; font-size: 1.3rem; font-weight: 700; white-space: nowrap; 
+            overflow: hidden; text-overflow: ellipsis; color: var(--text-main); 
+        }
+        
+        .btn-play { 
+            background: rgba(255,255,255,0.03); color: var(--text-muted); 
+            border: 1px solid var(--glass-border); padding: 12px; border-radius: 8px; 
+            cursor: pointer; font-weight: 800; letter-spacing: 1px; width: 100%; 
+            transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; gap: 8px;
+            font-size: 0.9rem;
+        }
+        .slot:hover .btn-play { 
+            background: var(--accent-primary-dim); color: var(--accent-primary); 
+            border-color: var(--accent-primary); 
+            box-shadow: 0 0 20px rgba(0,240,255,0.15); 
+        }
 
-    .outro-title {
-      font-family: var(--font-display); font-size: clamp(3rem, 8vw, 10rem);
-      font-weight: 800; text-transform: uppercase; color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.2); transition: color 0.4s;
-    }
+        /* FULLSCREEN overlay */
+        #fullscreen-overlay { 
+            display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; 
+            background: var(--bg-base); z-index: 10000; flex-direction: column; 
+            animation: fadeIn 0.3s ease forwards;
+        }
+        #game-header { 
+            height: 54px; background: rgba(5,5,9,0.8); backdrop-filter: blur(15px);
+            display: flex; align-items: center; padding: 0 20px; 
+            border-bottom: 1px solid var(--glass-border); justify-content: space-between;
+        }
+        #back-btn { 
+            background: transparent; color: var(--text-muted); 
+            padding: 6px 16px; border: 1px solid var(--glass-border); border-radius: 6px; 
+            cursor: pointer; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px;
+            transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        #back-btn:hover { 
+            background: var(--accent-secondary-dim); color: var(--accent-secondary); 
+            border-color: var(--accent-secondary); box-shadow: 0 0 15px rgba(255,0,85,0.2); 
+        }
+        #playing-title { font-weight: 700; letter-spacing: 1px; color: var(--accent-primary); font-size: 0.9rem; text-transform: uppercase;}
+        #game-frame { width: 100%; height: calc(100vh - 54px); border: none; background: #000; }
 
-    .outro-title:hover { color: var(--color-text); -webkit-text-stroke: 0; }
-
-    .footer-bar {
-      position: absolute; bottom: 0; width: 100%; padding: 2rem var(--spacing-md);
-      display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1);
-      font-size: 0.85rem; color: var(--color-muted); text-transform: uppercase;
-    }
-
-    @media (max-width: 1024px) {
-      .game-card { width: 85vw; min-width: 0; }
-      .game-title { font-size: 3rem; }
-    }
-  </style>
+        /* ANIMATIONS */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulseGlow { 0% { filter: drop-shadow(0 0 10px rgba(0,240,255,0.1)); } 100% { filter: drop-shadow(0 0 25px rgba(0,240,255,0.4)); } }
+    </style>
 </head>
 <body>
 
-  <!-- Dynamic Noise Canvas -->
-  <canvas id="grain-canvas"></canvas>
-
-  <!-- Physics Cursor -->
-  <div class="cursor-dot"></div>
-  <div class="cursor-follower"></div>
-
-  <!-- Cinematic Preloader -->
-  <div id="preloader">
-    <div class="loader-counter" data-count="000">000</div>
-  </div>
-
-  <nav>
-    <div class="brand hover-trigger">Scriptcade</div>
-    <div class="nav-status">
-      <div><span class="pulse"></span> System Active</div>
-      <div>V 5.0</div>
+    <!-- LANDING MENU -->
+    <div id="landing-screen">
+        <div class="landing-content">
+            <!-- PLACEHOLDER LOGO -->
+            <img id="logo-img" class="logo-placeholder" src="script.png" alt="ScriptCade Logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
+            
+            <!-- Fallback text logo if image is missing -->
+            <h1 id="text-logo" class="app-title" style="display:none; margin: 0; font-size: 5rem;">ScriptCade</h1>
+            
+            <button id="enter-btn" class="enter-btn" onclick="enterArcade()">ENTER ARCADE</button>
+        </div>
     </div>
-  </nav>
 
-  <!-- Lerp Scroll Container -->
-  <div id="scroll-container">
-    
-    <!-- SECTION 1: HERO -->
-    <header class="hero">
-      <h1 class="hero-title js-split-text">Scriptcade</h1>
-      <h1 class="hero-title js-split-text" style="color: var(--color-muted);">Engine</h1>
-      <p class="hero-subtitle">
-        A curated horizontal archive of interactive digital modules, procedural logic, and kinematic engineering. Scroll to deploy.
-      </p>
-    </header>
-
-    <!-- SECTION 2: HORIZONTAL SCROLL HIJACK -->
-    <section class="horizontal-section" id="hz-section">
-      <div class="sticky-wrapper">
-        <div class="horizontal-track" id="hz-track">
-          <!-- Game Cards Injected Here via JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 3: OUTRO -->
-    <section class="outro">
-      <h2 class="outro-title hover-trigger">End Transmission</h2>
-      <div class="footer-bar">
-        <span>© 2026 Scriptcade Industries</span>
-        <span>All Systems Operational</span>
-      </div>
-    </section>
-
-  </div>
-
-  <script>
-    /**
-     * ==========================================================================
-     * 1. DATA CONFIGURATION & DOM INJECTION
-     * ==========================================================================
-     */
-    const games = [
-      {
-        title: "Doodle Glider",
-        tags: ["Physics", "One-Prompt", "Canvas"],
-        img: "Doodleglider.png", 
-        url: "https://relthecreator.github.io/Doodle-Glider/"
-      },
-      {
-        title: "Neon Protocol",
-        tags: ["Cybernetic", "Simulation", "WebGL"],
-        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1600",
-        url: "#"
-      },
-      {
-        title: "Terminal 04",
-        tags: ["Logic Core", "Brutalist", "React"],
-        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1600",
-        url: "#"
-      },
-      {
-        title: "Echo Chamber",
-        tags: ["Narrative", "A.I.", "Data"],
-        img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600",
-        url: "#"
-      }
-    ];
-
-    const track = document.getElementById('hz-track');
-    
-    track.innerHTML = games.map((game, index) => `
-      <a href="${game.url}" class="game-card hz-drag-target" target="_blank">
-        <div class="game-index">0${index + 1}</div>
-        <div class="game-image-wrapper">
-          <img src="${game.img}" alt="${game.title}" class="game-image parallax-img">
-        </div>
-        <div class="game-info">
-          <div>
-            <h2 class="game-title">${game.title}</h2>
-            <div class="game-tags">
-              ${game.tags.map(tag => `<span class="game-tag">${tag}</span>`).join('')}
-            </div>
-          </div>
-          <div class="launch-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </div>
-        </div>
-      </a>
-    `).join('');
-
-    // Split Text Logic for Hero
-    document.querySelectorAll('.js-split-text').forEach(el => {
-      const text = el.innerText;
-      el.innerHTML = '';
-      text.split('').forEach((char, i) => {
-        const span = document.createElement('span');
-        span.innerText = char === ' ' ? '\u00A0' : char;
-        span.className = 'char';
-        span.style.transitionDelay = `${(i * 0.03) + 1.2}s`; 
-        el.appendChild(span);
-      });
-    });
-
-    /**
-     * ==========================================================================
-     * 2. SYNTHETIC AUDIO ENGINE
-     * ==========================================================================
-     */
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioCtx = new AudioContext();
-
-    function playHoverSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
-      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.02, audioCtx.currentTime); 
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    /**
-     * ==========================================================================
-     * 3. SYSTEM PRELOADER
-     * ==========================================================================
-     */
-    let loadCount = 0;
-    const counterEl = document.querySelector('.loader-counter');
-    const preloader = document.getElementById('preloader');
-    
-    const loadInterval = setInterval(() => {
-      loadCount += Math.floor(Math.random() * 6) + 1;
-      if (loadCount >= 100) {
-        loadCount = 100;
-        clearInterval(loadInterval);
-        setTimeout(() => {
-          preloader.classList.add('complete');
-          document.body.classList.add('ready');
-        }, 500);
-      }
-      const formatted = loadCount.toString().padStart(3, '0');
-      counterEl.innerText = formatted;
-      counterEl.setAttribute('data-count', formatted);
-    }, 20);
-
-    /**
-     * ==========================================================================
-     * 4. SMOOTH SCROLL & HORIZONTAL MATH (THE CORE ENGINE)
-     * ==========================================================================
-     */
-    const scrollContainer = document.getElementById('scroll-container');
-    const hzSection = document.getElementById('hz-section');
-    const hzTrack = document.getElementById('hz-track');
-    const cards = document.querySelectorAll('.game-card');
-    
-    let currentScroll = 0;
-    let targetScroll = 0;
-    let ease = 0.07; // Momentum weight
-    
-    // Calculate total body height based on the fixed scroll container
-    function updateHeight() {
-      document.body.style.height = `${scrollContainer.getBoundingClientRect().height}px`;
-    }
-    
-    // We must wait a frame for DOM rendering before calculating height
-    setTimeout(updateHeight, 100);
-    window.addEventListener('resize', updateHeight);
-    window.addEventListener('scroll', () => { targetScroll = window.scrollY; });
-
-    function smoothScroll() {
-      // Linear Interpolation (Lerp) for buttery scrolling
-      currentScroll += (targetScroll - currentScroll) * ease;
-      
-      // Calculate Scroll Velocity for Skew Effects
-      const velocity = targetScroll - currentScroll;
-      const skew = velocity * 0.02;
-      
-      // 1. Move the main vertical container
-      scrollContainer.style.transform = `translate3d(0, -${currentScroll.toFixed(2)}px, 0)`;
-
-      // 2. HORIZONTAL SCROLL MATH
-      const hzRect = hzSection.getBoundingClientRect();
-      const scrollProgress = -hzRect.top / (hzRect.height - window.innerHeight);
-      
-      // Check if we are inside the horizontal section bounds
-      if (scrollProgress >= 0 && scrollProgress <= 1) {
-        // Calculate max scroll distance based on track width vs screen width
-        const maxScroll = hzTrack.scrollWidth - window.innerWidth + (window.innerWidth * 0.1);
-        const xMove = scrollProgress * maxScroll;
+    <!-- MAIN ARCADE -->
+    <div id="arcade-container">
+        <h1 class="app-title">ScriptCade</h1>
         
-        // Apply transform: move track left, and apply velocity skew
-        hzTrack.style.transform = `translate3d(-${xMove}px, 0, 0) skewX(${skew}deg)`;
+        <!-- HOT GAMES SECTION -->
+        <h2 class="section-title" style="color: var(--accent-secondary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
+            HOT RELEASES
+        </h2>
+        <div class="game-grid" id="hot-grid"></div>
+
+        <!-- ALL GAMES SECTION -->
+        <h2 class="section-title" style="color: var(--accent-primary); margin-top: 50px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            ALL GAMES
+        </h2>
+        <div class="game-grid" id="main-grid"></div>
+    </div>
+
+    <!-- FULLSCREEN GAME VIEW -->
+    <div id="fullscreen-overlay">
+        <div id="game-header">
+            <button id="back-btn" onclick="closeGame()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                EXIT
+            </button>
+            <span id="playing-title"></span>
+            <div style="width: 75px;"></div> <!-- Spacer to perfectly center the title -->
+        </div>
+        <iframe id="game-frame" sandbox="allow-scripts allow-pointer-lock allow-same-origin allow-forms"></iframe>
+    </div>
+
+    <script>
+        // --- 1. SYSTEM FUNCTIONS ---
         
-        // Parallax inside the horizontal images
-        document.querySelectorAll('.parallax-img').forEach(img => {
-          img.style.transform = `translate3d(${xMove * 0.1}px, 0, 0) scale(1.2)`;
-        });
+        function enterArcade() {
+            const landing = document.getElementById('landing-screen');
+            const arcade = document.getElementById('arcade-container');
+            
+            landing.style.transform = 'translateY(-40px) scale(0.95)';
+            landing.style.opacity = '0';
+            
+            setTimeout(() => {
+                landing.style.display = 'none';
+                arcade.style.display = 'block';
+                
+                setTimeout(() => {
+                    arcade.style.opacity = '1';
+                    loadHotGames();
+                    loadGames();
+                }, 50);
+            }, 800);
+        }
 
-        // Trigger reveal animations for cards when they enter screen
-        cards.forEach(card => {
-          const cardRect = card.getBoundingClientRect();
-          if (cardRect.left < window.innerWidth * 0.8) {
-            card.classList.add('in-view');
-          }
-        });
-      }
+        function loadHotGames() {
+            renderGrid(hotGamesList, 'hot-grid', 'hot');
+        }
 
-      requestAnimationFrame(smoothScroll);
-    }
-    smoothScroll();
+        function loadGames() {
+            renderGrid(gamesList, 'main-grid', 'main');
+        }
 
-    /**
-     * ==========================================================================
-     * 5. PHYSICS CURSOR
-     * ==========================================================================
-     */
-    const cursorDot = document.querySelector('.cursor-dot');
-    const cursorFollower = document.querySelector('.cursor-follower');
-    let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
-    let followerX = mouseX, followerY = mouseY;
+        function renderGrid(list, elementId, type) {
+            const grid = document.getElementById(elementId);
+            grid.innerHTML = '';
+            list.forEach((game, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.style.animation = `fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.1 + 0.1}s forwards`;
+                
+                // Fallback contrast logic for custom badge colors
+                let badgeStyle = '';
+                if (game.badgeText) {
+                    const bg = game.badgeColor || 'var(--accent-primary)';
+                    const color = getContrastYIQ(bg) === 'black' ? '#000' : '#fff';
+                    badgeStyle = `background: ${bg}; color: ${color};`;
+                }
 
-    window.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX; mouseY = e.clientY;
-      cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-    });
+                slot.innerHTML = `
+                    <div class="thumbnail-area" onclick="playGame('${type}', ${index})" style="background-image: url('${game.img}')">
+                        ${!game.img || game.img === 'image' ? '<span class="thumbnail-placeholder">?</span>' : ''}
+                        ${game.badgeText ? `<span class="badge" style="${badgeStyle}">${game.badgeText}</span>` : ''}
+                    </div>
+                    <div class="slot-controls">
+                        <h3 class="game-title" title="${game.title}">${game.title}</h3>
+                        <button class="btn-play" onclick="playGame('${type}', ${index})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            PLAY NOW
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(slot);
+            });
+        }
 
-    function animateCursor() {
-      followerX += (mouseX - followerX) * 0.2;
-      followerY += (mouseY - followerY) * 0.2;
-      cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
-      requestAnimationFrame(animateCursor);
-    }
-    animateCursor();
+        function getContrastYIQ(hexcolor){
+            if(!hexcolor) return 'black';
+            if(hexcolor.startsWith('var')) return 'black'; // fallback for css vars
+            hexcolor = hexcolor.replace("#", "");
+            if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(x => x+x).join('');
+            var r = parseInt(hexcolor.substr(0,2),16);
+            var g = parseInt(hexcolor.substr(2,2),16);
+            var b = parseInt(hexcolor.substr(4,2),16);
+            var yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
 
-    // Standard Hovers
-    document.querySelectorAll('.hover-trigger').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursorFollower.classList.add('active');
-        playHoverSound();
-      });
-      el.addEventListener('mouseleave', () => cursorFollower.classList.remove('active'));
-    });
+        function playGame(listType, index) {
+            let data = listType === 'hot' ? hotGamesList[index] : gamesList[index];
+            if (!data) return;
+            
+            document.getElementById('playing-title').innerText = data.title;
+            const overlay = document.getElementById('fullscreen-overlay');
+            const frame = document.getElementById('game-frame');
+            
+            overlay.style.display = 'flex';
+            frame.src = data.url; 
+            
+            if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch((e) => {}); }
+        }
 
-    // Custom "Drag" state for the horizontal cards
-    document.querySelectorAll('.hz-drag-target').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursorFollower.classList.add('drag');
-        playHoverSound();
-      });
-      el.addEventListener('mouseleave', () => cursorFollower.classList.remove('drag'));
-    });
+        function closeGame() {
+            document.getElementById('fullscreen-overlay').style.display = 'none';
+            document.getElementById('game-frame').src = ''; 
+            if (document.exitFullscreen) { document.exitFullscreen().catch((e) => {}); }
+        }
 
-    /**
-     * ==========================================================================
-     * 6. HTML5 CANVAS FILM GRAIN
-     * ==========================================================================
-     */
-    const canvas = document.getElementById('grain-canvas');
-    const ctx = canvas.getContext('2d', { alpha: true });
-    let w, h, grainData;
+        // --- 2. GAME LISTS ---
+        
+        const hotGamesList = [
+            {
+                title: "Blade Ball",
+                img: "bladethumb.png",
+                badgeText: "HOT",
+                badgeColor: "#ff0055",
+                url: "[https://scriptcade.github.io/blade-ball/](https://scriptcade.github.io/blade-ball/)"
+            },
+            {
+                title: "Geometry Dash Maker",
+                img: "gdthumb.jpeg",
+                badgeText: "HOT",
+                badgeColor: "#ff0055",
+                url: "[https://scriptcade.github.io/this-is-a-tesst-changing-later/](https://scriptcade.github.io/this-is-a-tesst-changing-later/)"
+            },
+            {
+                title: "Grow A Garden",
+                img: "GrowAGardenthumb.avif",
+                badgeText: "HOT",
+                badgeColor: "#ff0055",
+                url: "[https://scriptcade.github.io/grow-a-garden-gemini/](https://scriptcade.github.io/grow-a-garden-gemini/)"
+            }
+        ];
 
-    function initGrain() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-      grainData = ctx.createImageData(w, h);
-    }
-    window.addEventListener('resize', initGrain);
-    initGrain();
-
-    function renderGrain() {
-      const buffer = new Uint32Array(grainData.data.buffer);
-      for (let i = 0; i < buffer.length; i++) {
-        // High speed monochrome noise computation
-        buffer[i] = Math.random() < 0.5 ? 0xFFFFFFFF : 0xFF000000;
-      }
-      ctx.putImageData(grainData, 0, 0);
-      requestAnimationFrame(renderGrain);
-    }
-    renderGrain();
-
-  </script>
+        const gamesList = [
+            {
+                title: "Among Us Clone",
+                img: "amongusthumb.webp", 
+                badgeText: "FIRST PUBLISHED",
+                badgeColor: "#00ff88",
+                url: "[https://scriptcade.github.io/among-us-gemini/](https://scriptcade.github.io/among-us-gemini/)" 
+            },
+            {
+                title: "Epic Plane Evolution",
+                img: "epicplanethumb.jpeg",
+                url: "[https://scriptcade.github.io/epic-plane-evolution/](https://scriptcade.github.io/epic-plane-evolution/)"
+            },
+            {
+                title: "Block Blast",
+                img: "blockthumb.jpeg",
+                badgeText: "SAVES DATA",
+                badgeColor: "#E02222",
+                url: "[https://scriptcade.github.io/block-blast/](https://scriptcade.github.io/block-blast/)"
+            },
+            {
+                title: "Tower Defense Simulator",
+                img: "tdsthumb.jpeg",
+                url: "[https://scriptcade.github.io/tds/](https://scriptcade.github.io/tds/)"
+            },
+            {
+                title: "Block Shooter",
+                img: "BLOCK SHOOTER.png",
+                badgeText: "NEW",
+                badgeColor: "#00f0ff",
+                url: "[https://scriptcade.github.io/block-shooter/](https://scriptcade.github.io/block-shooter/)"
+            },
+            {
+                title: "Doodle Glider",
+                img: "Doodleglider.png",
+                badgeText: "One Prompt",
+                badgeColor: "#AF2B1E",
+                url: "[https://relthecreator.github.io/Doodle-Glider/](https://relthecreator.github.io/Doodle-Glider/)"
+            }
+        ];
+    </script>
 </body>
 </html>
