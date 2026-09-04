@@ -3,289 +3,290 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The ScriptCade</title>
-  <!-- Using 'Outfit' for that high-end tech/gaming typography -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <title>ScriptCade | Neural OS</title>
+  <!-- Rajdhani gives that sleek, cinematic HUD typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050507;
-      --card-bg: rgba(255, 255, 255, 0.03);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #ffffff;
-      --text-muted: #8a8d98;
+      --obsidian: #030304;
+      --glass-panel: rgba(255, 255, 255, 0.02);
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --text-main: #f0f0f5;
+      --text-muted: #808495;
+      --ambient-glow: #0088ff; /* Default electric blue */
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; cursor: crosshair; }
     
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--obsidian);
+      color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
-      /* Animated ambient background */
+    }
+
+    /* --- LIQUID OBSIDIAN & DYNAMIC SHADERS --- */
+    #environment-shader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                  var(--ambient-glow) 0%, transparent 40%);
+      opacity: 0.15; /* Subtle liquid breathing effect */
+      transition: --ambient-glow 0.8s ease, opacity 0.5s ease;
+      z-index: 1; pointer-events: none;
+      animation: pulse-shader 4s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-shader { 0% { opacity: 0.1; } 100% { opacity: 0.18; } }
+
+    /* Laser-Trace Grid */
+    #laser-grid {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
       background-image: 
-        radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 50%),
-        radial-gradient(circle at 85% 30%, rgba(15, 118, 110, 0.15), transparent 50%);
-      background-attachment: fixed;
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      mask-image: linear-gradient(to bottom, transparent, black, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
     }
 
-    /* --- HERO SECTION --- */
+    /* --- THE WORKSPACE --- */
+    #workspace {
+      position: relative; z-index: 10;
+      max-width: 1400px; margin: 0 auto; padding: 5rem 2rem;
+    }
+
     header {
-      padding: 6rem 2rem 4rem;
-      text-align: center;
-      max-width: 1000px;
-      margin: 0 auto;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      text-align: center; margin-bottom: 5rem;
+      opacity: 0; animation: holo-fade-in 1.5s 0.2s forwards;
     }
 
-    .pill {
-      display: inline-block;
-      padding: 0.5rem 1.2rem;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 50px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      backdrop-filter: blur(10px);
+    .os-label {
+      display: inline-block; padding: 0.4rem 1rem;
+      background: var(--glass-panel); border: 1px solid var(--ambient-glow);
+      border-radius: 4px; font-size: 0.9rem; font-weight: 600; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--ambient-glow);
+      box-shadow: 0 0 15px rgba(var(--ambient-glow), 0.3);
+      margin-bottom: 1rem; backdrop-filter: blur(10px);
+      transition: border-color 0.8s, color 0.8s, box-shadow 0.8s;
     }
 
     h1 {
-      font-size: clamp(3rem, 8vw, 5rem);
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: -2px;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, #fff 0%, #737373 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
 
-    /* --- 3D GRID & CARDS --- */
-    .grid-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem 6rem;
-      perspective: 2000px; /* Required for the 3D effect */
+    /* --- HOLO-PODS (CARDS) --- */
+    .holo-stream {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 3rem;
+      perspective: 1500px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 2.5rem;
-    }
+    .pod-wrapper { transform-style: preserve-3d; opacity: 0; animation: holo-fade-in 1s forwards; }
 
-    /* Card Wrapper handles the 3D rotation */
-    .card-wrapper {
-      transform-style: preserve-3d;
-      opacity: 0;
-      transform: translateY(40px);
-    }
-
-    .card {
+    .holo-pod {
       position: relative;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      backdrop-filter: blur(20px);
-      transform-style: preserve-3d;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      cursor: pointer;
+      background: linear-gradient(145deg, rgba(20,20,25,0.4), rgba(5,5,10,0.6));
+      border: 1px solid var(--glass-border); border-radius: 16px;
+      padding: 1.5rem; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      display: flex; flex-direction: column; transform-style: preserve-3d;
+      transition: box-shadow 0.4s ease, border-color 0.4s ease;
     }
 
-    .card:hover {
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
+    /* The Electric Aura on Hover */
+    .holo-pod::before {
+      content: ''; position: absolute; inset: -1px; border-radius: 16px;
+      background: var(--ambient-glow); z-index: -1; opacity: 0;
+      filter: blur(15px); transition: opacity 0.4s ease, background 0.8s;
     }
 
-    /* The Image pops out in 3D */
-    .card-img-container {
-      width: 100%;
-      height: 220px;
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
-      transform: translateZ(30px); /* Pushes image forward in 3D space */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
+    .pod-wrapper:hover .holo-pod { border-color: rgba(255, 255, 255, 0.2); }
+    .pod-wrapper:hover .holo-pod::before { opacity: 0.4; }
 
-    .card-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .card:hover .card-img {
-      transform: scale(1.08);
-    }
-
-    /* Floating Glass Badge */
-    .badge {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      padding: 6px 14px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: white;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transform: translateZ(40px); /* Pops the badge even further out */
-    }
-
-    .card-info {
-      padding: 1.5rem 0.5rem 0.5rem;
-      transform: translateZ(20px); /* Pushes text forward */
-    }
-
-    .card-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      letter-spacing: -0.5px;
-    }
-
-    .play-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
+    /* Holographic Image Display */
+    .pod-display {
+      width: 100%; height: 200px; border-radius: 10px; overflow: hidden;
+      position: relative; transform: translateZ(30px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: white;
-      text-decoration: none;
-      border-radius: 14px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: all 0.3s ease;
     }
 
-    .play-btn:hover {
-      background: white;
-      color: black;
+    .pod-display::after {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
+      pointer-events: none; /* Holographic scanline effect */
     }
 
-    .play-btn svg {
-      width: 18px; height: 18px;
-      fill: none; stroke: currentColor; stroke-width: 2;
-      stroke-linecap: round; stroke-linejoin: round;
-      transition: transform 0.3s ease;
+    .pod-img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s;
+      filter: sepia(0.3) hue-rotate(180deg) brightness(0.8) contrast(1.2);
     }
 
-    .play-btn:hover svg {
-      transform: translateX(4px);
+    .pod-wrapper:hover .pod-img { transform: scale(1.05); filter: sepia(0) hue-rotate(0) brightness(1) contrast(1); }
+
+    /* Interactive Data Orb (Badge) */
+    .data-orb {
+      position: absolute; top: -10px; right: -10px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 30px;
+      background: rgba(0,0,0,0.8); border: 1px solid;
+      font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; backdrop-filter: blur(10px);
+      transform: translateZ(50px); box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .orb-core { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 10px currentColor; animation: pulse-shader 2s infinite alternate; }
+
+    .pod-meta { padding: 1.5rem 0 0.5rem; transform: translateZ(20px); }
+    .pod-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: 1px; }
+
+    /* --- NEURAL CHOICE TILES --- */
+    .neural-tile {
+      position: relative; display: flex; justify-content: space-between; align-items: center;
+      width: 100%; padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px; color: var(--text-main); text-decoration: none;
+      font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;
+      overflow: hidden; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
+    /* Refraction Glare Effect */
+    .neural-tile::after {
+      content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: skewX(-20deg); transition: 0.5s ease;
     }
+
+    .neural-tile:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--ambient-glow);
+      box-shadow: 0 0 20px rgba(var(--ambient-glow), 0.2);
+    }
+
+    .neural-tile:hover::after { left: 150%; }
+
+    .tile-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform 0.3s; }
+    .neural-tile:hover .tile-icon { transform: translateX(5px); }
+
+    @keyframes holo-fade-in { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="pill">thenewscriptcade</div>
-    <h1>The Arcade.</h1>
-  </header>
+  <!-- Dynamic Background Shaders -->
+  <div id="environment-shader"></div>
+  <div id="laser-grid"></div>
 
-  <div class="grid-container">
-    <main class="grid" id="game-grid"></main>
+  <!-- Main OS UI -->
+  <div id="workspace">
+    <header>
+      <div class="os-label" id="os-status">System Connected</div>
+      <h1>ScriptCade Engine</h1>
+    </header>
+
+    <main class="holo-stream" id="stream-nodes"></main>
   </div>
 
   <script>
     // ==========================================
-    // 🎮 YOUR GAME DATA
-    // Add your games here. The UI will build itself.
+    // 🌌 THE DATA NODES
+    // Add 'shaderColor' to dictate how the environment 
+    // reacts when you hover over a specific story/game.
     // ==========================================
-    const games = [
+    const nodes = [
       {
         title: "Doodle Glider",
-        img: "Doodleglider.png", // Replace with your actual image path/URL
+        img: "Doodleglider.png", 
         badgeText: "One Prompt",
-        badgeColor: "rgba(175, 43, 30, 0.8)", // Added opacity for the glass look
+        badgeColor: "#AF2B1E",       // The color of the orb
+        shaderColor: "#ff1a40",      // The color the whole room turns on hover (Action/Tense)
         url: "https://relthecreator.github.io/Doodle-Glider/"
       },
       {
-        title: "Neon Drift",
+        title: "Neon Protocol",
         img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
-        badgeText: "Featured",
-        badgeColor: "rgba(37, 99, 235, 0.8)",
+        badgeText: "Simulation",
+        badgeColor: "#00f0ff",
+        shaderColor: "#0088ff",      // Tech/Cyberpunk blue
         url: "#"
       },
       {
-        title: "Pixel Vault",
+        title: "Echo Chamber",
         img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
-        badgeText: "Classic",
-        badgeColor: "rgba(22, 163, 74, 0.8)",
+        badgeText: "Narrative",
+        badgeColor: "#b026ff",
+        shaderColor: "#7a00ff",      // Mysterious purple
         url: "#"
       }
     ];
 
-    const grid = document.getElementById('game-grid');
-    
-    // 1. Generate the HTML for the cards
-    grid.innerHTML = games.map((game, index) => `
-      <div class="card-wrapper" style="animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.2 + (index * 0.1)}s forwards;">
-        <div class="card" onclick="window.open('${game.url}', '_blank')">
-          <div class="card-img-container">
-            ${game.badgeText ? `<div class="badge" style="background-color: ${game.badgeColor}; border: 1px solid ${game.badgeColor.replace('0.8', '1')}">${game.badgeText}</div>` : ''}
-            <img src="${game.img}" alt="${game.title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800'">
+    const stream = document.getElementById('stream-nodes');
+    const root = document.documentElement;
+    const osStatus = document.getElementById('os-status');
+
+    // 1. Render the Holo-Pods
+    stream.innerHTML = nodes.map((node, i) => `
+      <div class="pod-wrapper" style="animation-delay: ${0.4 + (i * 0.15)}s;" data-shader="${node.shaderColor}">
+        <div class="holo-pod">
+          <div class="pod-display">
+            <div class="data-orb" style="border-color: ${node.badgeColor}; color: ${node.badgeColor};">
+              <div class="orb-core" style="background: ${node.badgeColor};"></div>
+              ${node.badgeText}
+            </div>
+            <img src="${node.img}" class="pod-img" onerror="this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800'">
           </div>
-          <div class="card-info">
-            <h2 class="card-title">${game.title}</h2>
-            <a href="${game.url}" class="play-btn" target="_blank" onclick="event.stopPropagation()">
-              Launch App
-              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <div class="pod-meta">
+            <h2 class="pod-title">${node.title}</h2>
+            <!-- The Neural Choice Tile -->
+            <a href="${node.url}" class="neural-tile" target="_blank">
+              Initialize Node
+              <svg class="tile-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
           </div>
         </div>
       </div>
     `).join('');
 
-    // 2. Add the Crazy 3D Mouse Tracking Physics
-    const wrappers = document.querySelectorAll('.card-wrapper');
+    // 2. Liquid Environment & Physics Engine
+    const wrappers = document.querySelectorAll('.pod-wrapper');
+
+    // Make the ambient shader track the mouse globally
+    document.addEventListener('mousemove', (e) => {
+      root.style.setProperty('--mouse-x', `${e.clientX}px`);
+      root.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
 
     wrappers.forEach(wrapper => {
-      const card = wrapper.querySelector('.card');
+      const pod = wrapper.querySelector('.holo-pod');
+      const shaderColor = wrapper.getAttribute('data-shader');
 
+      // 3D Tilt Hover Physics
       wrapper.addEventListener('mousemove', (e) => {
         const rect = wrapper.getBoundingClientRect();
-        const x = e.clientX - rect.left; // x position within the element.
-        const y = e.clientY - rect.top;  // y position within the element.
-        
+        const x = e.clientX - rect.left; 
+        const y = e.clientY - rect.top;  
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         
-        // Calculate rotation based on mouse distance from center
-        const rotateX = ((y - centerY) / centerY) * -12; // Max 12deg tilt
-        const rotateY = ((x - centerX) / centerX) * 12;
+        const rotateX = ((y - centerY) / centerY) * -10; 
+        const rotateY = ((x - centerX) / centerX) * 10;
 
-        // Apply instantaneous 3D transform during mouse move
-        card.style.transition = 'none';
-        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        pod.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
       });
 
-      wrapper.addEventListener('mouseleave', () => {
-        // Snap back smoothly when the mouse leaves
-        card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-        card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-      });
-      
+      // Dynamic Environment Shader Activation
       wrapper.addEventListener('mouseenter', () => {
-        card.style.transition = 'transform 0.1s ease-out';
+        root.style.setProperty('--ambient-glow', shaderColor);
+        osStatus.innerText = "Processing Sequence...";
+        osStatus.style.color = shaderColor;
+      });
+
+      // Reset Physics and Shaders
+      wrapper.addEventListener('mouseleave', () => {
+        pod.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        root.style.setProperty('--ambient-glow', '#0088ff'); // Reset to default blue
+        osStatus.innerText = "System Connected";
+        osStatus.style.color = 'var(--ambient-glow)';
       });
     });
   </script>
