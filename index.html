@@ -3,460 +3,734 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCRIPT CADE | Premium Digital</title>
+  <title>SCRIPT CADE | Monolith Edition</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   
   <style>
     /* ==========================================================================
-       1. VARIABLES & RESET
+       1. CORE VARIABLES & ARCHITECTURE
        ========================================================================== */
     :root {
-      --bg-color: #0c0c0c;
-      --text-main: #f4f4f4;
-      --text-muted: #7a7a7a;
-      --accent: #d4ff00; /* High-end chartreuse accent */
-      --transition-slow: 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-      --transition-fast: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      --color-bg: #070707;
+      --color-text: #f0f0f0;
+      --color-muted: #555555;
+      --color-accent: #ff2a00;
+      --color-surface: #111111;
+      
+      --font-display: 'Syne', sans-serif;
+      --font-ui: 'Inter', sans-serif;
+      
+      --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      
+      --spacing-sm: 2vw;
+      --spacing-md: 5vw;
+      --spacing-lg: 10vw;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
+    html {
+      font-size: 16px;
+      background: var(--color-bg);
+    }
+
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: 'Inter', sans-serif;
+      color: var(--color-text);
+      font-family: var(--font-ui);
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-      cursor: none; /* We are using a custom cursor */
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden; /* Handled by custom smooth scroll */
+      cursor: none;
+      user-select: none;
     }
 
-    body.loading {
-      overflow: hidden; /* Prevent scrolling during load */
-    }
-
-    ::selection { background: var(--text-main); color: var(--bg-color); }
+    ::selection { background: var(--color-accent); color: var(--color-bg); }
 
     /* ==========================================================================
-       2. CUSTOM CURSOR
+       2. CANVAS GRAIN & CUSTOM CURSOR
        ========================================================================== */
-    .cursor-dot, .cursor-outline {
-      position: fixed;
-      top: 0; left: 0;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      z-index: 9999;
+    #grain-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 9999; pointer-events: none; opacity: 0.04; mix-blend-mode: overlay;
+    }
+
+    .cursor-dot, .cursor-follower {
+      position: fixed; top: 0; left: 0;
+      border-radius: 50%; z-index: 10000;
       pointer-events: none;
+      transform: translate3d(-50%, -50%, 0);
     }
 
     .cursor-dot {
-      width: 6px; height: 6px;
-      background-color: var(--accent);
+      width: 5px; height: 5px; background: var(--color-accent);
     }
 
-    .cursor-outline {
+    .cursor-follower {
       width: 40px; height: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), background 0.4s var(--ease-out), border 0.4s var(--ease-out);
     }
 
-    /* Hover state for the cursor */
-    .cursor-outline.hovering {
+    .cursor-follower.active {
       width: 80px; height: 80px;
-      background-color: var(--text-main);
-      border-color: transparent;
-      mix-blend-mode: difference;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    .cursor-follower.menu-active {
+      width: 10px; height: 10px; background: var(--color-text);
     }
 
     /* ==========================================================================
-       3. PRELOADER ANIMATION
+       3. CUSTOM CONTEXT MENU
+       ========================================================================== */
+    #context-menu {
+      position: fixed; z-index: 10001;
+      background: rgba(15, 15, 15, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 10px;
+      min-width: 200px;
+      opacity: 0; visibility: hidden;
+      transform: scale(0.95) translateY(10px);
+      transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out), visibility 0.2s;
+    }
+
+    #context-menu.show {
+      opacity: 1; visibility: visible; transform: scale(1) translateY(0);
+    }
+
+    .context-item {
+      padding: 12px 15px; font-size: 0.85rem; font-weight: 500;
+      color: var(--color-text); cursor: none;
+      border-radius: 4px; display: flex; justify-content: space-between;
+      transition: background 0.2s;
+    }
+
+    .context-item:hover { background: rgba(255,255,255,0.1); color: var(--color-accent); }
+    .context-item span { color: var(--color-muted); font-size: 0.75rem; }
+
+    /* ==========================================================================
+       4. PRELOADER SEQUENCE
        ========================================================================== */
     #preloader {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000; z-index: 9000;
-      display: flex; flex-direction: column; justify-content: flex-end; padding: 4vw;
-      transition: transform var(--transition-slow);
-    }
-
-    #preloader.loaded { transform: translateY(-100%); }
-
-    .loader-content { display: flex; justify-content: space-between; align-items: flex-end; }
-    
-    .loader-text {
-      font-family: 'Syne', sans-serif; font-size: 2vw; font-weight: 700;
-      text-transform: uppercase; color: var(--text-muted);
-    }
-
-    .loader-percentage {
-      font-family: 'Syne', sans-serif; font-size: 10vw; font-weight: 800;
-      line-height: 0.8;
-    }
-
-    /* ==========================================================================
-       4. NAVIGATION
-       ========================================================================== */
-    nav {
-      position: fixed; top: 0; left: 0; width: 100%;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 2rem 4vw; z-index: 100;
-      mix-blend-mode: difference;
-    }
-
-    .logo {
-      font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: -1px;
-    }
-
-    .nav-links { display: flex; gap: 2rem; font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
-
-    /* ==========================================================================
-       5. HERO SECTION
-       ========================================================================== */
-    #hero {
-      height: 100vh; display: flex; flex-direction: column;
-      justify-content: center; padding: 0 4vw;
-    }
-
-    .hero-title {
-      font-family: 'Syne', sans-serif; font-size: clamp(4rem, 12vw, 15rem);
-      font-weight: 800; line-height: 0.85; text-transform: uppercase;
-      letter-spacing: -0.04em; margin-bottom: 2rem;
-    }
-
-    /* Masking animation for text reveal */
-    .line-mask { overflow: hidden; display: block; }
-    
-    .line-mask span {
-      display: block; transform: translateY(100%);
-      transition: transform var(--transition-slow);
-      transition-delay: 0.5s; /* Waits for preloader to finish */
-    }
-
-    body.ready .line-mask span { transform: translateY(0); }
-
-    .hero-subtitle {
-      max-width: 400px; font-size: 1.1rem; color: var(--text-muted);
-      line-height: 1.6; font-weight: 400; margin-left: auto;
-      opacity: 0; transform: translateY(20px);
-      transition: opacity 1s ease 1s, transform 1s ease 1s;
-    }
-
-    body.ready .hero-subtitle { opacity: 1; transform: translateY(0); }
-
-    /* ==========================================================================
-       6. INFINITE MARQUEE
-       ========================================================================== */
-    .marquee-container {
-      width: 100%; overflow: hidden; padding: 4rem 0;
-      background: var(--text-main); color: var(--bg-color);
-      transform: rotate(-2deg) scale(1.1); margin: 5rem 0 10rem;
-    }
-
-    .marquee-track {
-      display: flex; white-space: nowrap;
-      animation: marquee 20s linear infinite;
-    }
-
-    .marquee-text {
-      font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800;
-      text-transform: uppercase; padding: 0 2rem;
-    }
-
-    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-    /* ==========================================================================
-       7. EDITORIAL PROJECT GRID
-       ========================================================================== */
-    #work { padding: 0 4vw 10rem; }
-
-    .section-header {
-      font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700;
-      margin-bottom: 4rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;
-    }
-
-    .project-grid { display: flex; flex-direction: column; gap: 8rem; }
-
-    .project-card {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
-      align-items: center; opacity: 0; transform: translateY(100px);
-      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .project-card.in-view { opacity: 1; transform: translateY(0); }
-
-    /* Alternating layout for cards */
-    .project-card:nth-child(even) { grid-template-columns: 1.2fr 0.8fr; }
-    .project-card:nth-child(even) .project-image-wrapper { order: 2; }
-    .project-card:nth-child(even) .project-info { order: 1; }
-
-    .project-image-wrapper {
-      width: 100%; height: 70vh; min-height: 500px;
-      overflow: hidden; position: relative; border-radius: 4px;
-      /* Premium clip-path reveal */
-      clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
-      transition: clip-path 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .project-card.in-view .project-image-wrapper {
+      position: fixed; inset: 0; background: var(--color-bg); z-index: 9000;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      transition: clip-path 1.2s var(--ease-in-out);
       clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
 
-    .project-image {
-      width: 100%; height: 100%; object-fit: cover;
-      transform: scale(1.2); transition: transform 2s ease, filter 0.8s ease;
-      filter: grayscale(100%);
+    #preloader.complete { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+
+    .loader-counter {
+      font-family: var(--font-display); font-size: 15vw; font-weight: 800;
+      line-height: 1; color: transparent;
+      -webkit-text-stroke: 1px var(--color-muted);
+      position: relative;
     }
 
-    .project-card:hover .project-image { transform: scale(1); filter: grayscale(0%); }
-
-    .project-info { padding: 2rem 0; }
-
-    .project-badge {
-      display: inline-block; padding: 0.5rem 1rem;
-      border: 1px solid var(--text-muted); border-radius: 50px;
-      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
-      margin-bottom: 2rem; letter-spacing: 1px; color: var(--text-muted);
+    .loader-counter::after {
+      content: attr(data-count); position: absolute; top: 0; left: 0;
+      color: var(--color-text); -webkit-text-stroke: 0;
+      clip-path: inset(100% 0 0 0);
+      animation: fillText 2.5s var(--ease-out) forwards;
     }
 
-    .project-title {
-      font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800;
-      line-height: 1; margin-bottom: 1.5rem; text-transform: uppercase;
-    }
+    @keyframes fillText { to { clip-path: inset(0 0 0 0); } }
 
-    .project-btn {
-      display: inline-flex; align-items: center; gap: 1rem;
-      font-size: 1rem; font-weight: 600; text-transform: uppercase;
-      text-decoration: none; color: var(--text-main);
-      position: relative; overflow: hidden; padding: 1rem 0;
+    .loader-bar-container {
+      width: 200px; height: 2px; background: rgba(255,255,255,0.1);
+      margin-top: 2rem; position: relative; overflow: hidden;
     }
-
-    .project-btn::after {
-      content: ''; position: absolute; bottom: 0; left: 0;
-      width: 100%; height: 2px; background: var(--accent);
-      transform: scaleX(0); transform-origin: right;
-      transition: transform 0.4s ease;
-    }
-
-    .project-btn:hover::after { transform: scaleX(1); transform-origin: left; }
     
-    .project-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
-    .project-btn:hover svg { transform: translateX(10px) rotate(45deg); color: var(--accent); }
+    .loader-bar {
+      height: 100%; background: var(--color-accent); width: 0%;
+      transition: width 0.1s linear;
+    }
 
     /* ==========================================================================
-       8. RESPONSIVE DESIGN
+       5. SMOOTH SCROLL CONTAINER
        ========================================================================== */
-    @media (max-width: 900px) {
-      .project-card, .project-card:nth-child(even) {
-        grid-template-columns: 1fr; gap: 2rem;
-      }
-      .project-card:nth-child(even) .project-image-wrapper { order: 1; }
-      .project-card:nth-child(even) .project-info { order: 2; }
-      .project-image-wrapper { height: 50vh; min-height: 300px; }
-      .hero-title { font-size: 4rem; }
-      nav { display: none; } /* Hide nav on mobile for extreme minimalism */
-      .cursor-dot, .cursor-outline { display: none; } /* Disable custom cursor on mobile */
-      body { cursor: auto; }
+    #scroll-container {
+      position: fixed; top: 0; left: 0; width: 100%;
+      will-change: transform;
     }
+
+    /* ==========================================================================
+       6. NAVIGATION & FULLSCREEN MENU
+       ========================================================================== */
+    nav {
+      position: fixed; top: 0; width: 100%; padding: 2rem var(--spacing-md);
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 100; mix-blend-mode: difference;
+    }
+
+    .brand { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; }
+
+    .menu-toggle {
+      display: flex; flex-direction: column; gap: 6px; padding: 10px; cursor: none;
+    }
+
+    .menu-toggle .line {
+      width: 30px; height: 2px; background: var(--color-text);
+      transition: transform 0.4s var(--ease-in-out), opacity 0.4s;
+    }
+
+    body.menu-open .menu-toggle .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    body.menu-open .menu-toggle .line:nth-child(2) { opacity: 0; }
+    body.menu-open .menu-toggle .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    #fullscreen-menu {
+      position: fixed; inset: 0; background: var(--color-bg); z-index: 90;
+      display: flex; align-items: center; justify-content: center;
+      clip-path: circle(0% at 100% 0%);
+      transition: clip-path 1s var(--ease-in-out);
+    }
+
+    body.menu-open #fullscreen-menu { clip-path: circle(150% at 100% 0%); }
+
+    .menu-links {
+      display: flex; flex-direction: column; gap: 2rem; text-align: center;
+    }
+
+    .menu-link {
+      font-family: var(--font-display); font-size: 6vw; font-weight: 800;
+      text-transform: uppercase; color: transparent;
+      -webkit-text-stroke: 1px var(--color-muted);
+      text-decoration: none; position: relative;
+      transition: color 0.4s var(--ease-out), -webkit-text-stroke 0.4s;
+    }
+
+    .menu-link:hover { color: var(--color-text); -webkit-text-stroke: 0px transparent; }
+
+    /* ==========================================================================
+       7. HERO SECTION (SPLIT TEXT)
+       ========================================================================== */
+    .hero {
+      height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; padding: 0 var(--spacing-md);
+      position: relative;
+    }
+
+    .hero-title {
+      font-family: var(--font-display); font-size: clamp(4rem, 11vw, 14rem);
+      font-weight: 800; line-height: 0.9; text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .char {
+      display: inline-block; transform: translateY(110%) rotate(10deg);
+      opacity: 0; transition: transform 1s var(--ease-out), opacity 1s;
+    }
+    
+    body.ready .char { transform: translateY(0) rotate(0deg); opacity: 1; }
+
+    .hero-meta {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      max-width: 600px; margin-left: auto; border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 2rem; opacity: 0; transform: translateY(20px);
+      transition: opacity 1s 1s, transform 1s 1s;
+    }
+
+    body.ready .hero-meta { opacity: 1; transform: translateY(0); }
+
+    /* ==========================================================================
+       8. MARQUEE PHYSICS
+       ========================================================================== */
+    .marquee-wrapper {
+      padding: var(--spacing-md) 0; border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1); overflow: hidden;
+      background: var(--color-surface); transform: rotate(-1deg) scale(1.05);
+    }
+
+    .marquee-track {
+      display: flex; white-space: nowrap; width: max-content;
+    }
+
+    .marquee-item {
+      font-family: var(--font-display); font-size: 5rem; font-weight: 700;
+      text-transform: uppercase; padding: 0 3rem; color: transparent;
+      -webkit-text-stroke: 1px var(--color-text);
+      display: inline-flex; align-items: center; gap: 3rem;
+    }
+
+    .marquee-item span { color: var(--color-accent); -webkit-text-stroke: 0; font-size: 3rem; }
+
+    /* ==========================================================================
+       9. ADVANCED GRID & MAGNETIC BUTTONS
+       ========================================================================== */
+    .capabilities { padding: var(--spacing-lg) var(--spacing-md); }
+    
+    .section-title {
+      font-family: var(--font-display); font-size: 2rem; font-weight: 700;
+      margin-bottom: var(--spacing-md); text-transform: uppercase;
+      letter-spacing: 2px; color: var(--color-muted);
+    }
+
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);
+    }
+
+    .service-card {
+      padding: 4rem 3rem; background: var(--color-surface); border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;
+      transition: background 0.4s;
+    }
+
+    .service-card:hover { background: rgba(255, 42, 0, 0.05); border-color: rgba(255, 42, 0, 0.2); }
+
+    .service-index {
+      font-family: var(--font-display); font-size: 1rem; color: var(--color-accent);
+      margin-bottom: 2rem; display: block;
+    }
+
+    .service-title { font-size: 2.5rem; font-weight: 400; margin-bottom: 1.5rem; }
+    
+    .magnetic-btn {
+      display: inline-flex; justify-content: center; align-items: center;
+      width: 120px; height: 120px; border-radius: 50%;
+      background: transparent; border: 1px solid var(--color-muted);
+      color: var(--color-text); text-decoration: none; font-size: 0.9rem;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.4s, border 0.4s;
+      will-change: transform;
+    }
+
+    .magnetic-btn:hover {
+      background: var(--color-accent); border-color: var(--color-accent);
+    }
+
+    /* ==========================================================================
+       10. PROJECT SHOWCASE (PARALLAX IMAGES)
+       ========================================================================== */
+    .projects { padding: var(--spacing-lg) var(--spacing-md); }
+
+    .project-row {
+      display: grid; grid-template-columns: 4fr 6fr; gap: 5vw;
+      align-items: center; margin-bottom: var(--spacing-lg);
+      opacity: 0; transform: translateY(100px);
+      transition: opacity 1s var(--ease-out), transform 1s var(--ease-out);
+    }
+
+    .project-row.visible { opacity: 1; transform: translateY(0); }
+    .project-row:nth-child(even) { grid-template-columns: 6fr 4fr; }
+    .project-row:nth-child(even) .project-visual { order: 2; }
+
+    .project-visual {
+      height: 80vh; overflow: hidden; border-radius: 4px; position: relative;
+    }
+
+    /* Parallax image scaling */
+    .project-visual img {
+      width: 100%; height: 120%; object-fit: cover;
+      transform: translateY(-10%); filter: grayscale(100%);
+      transition: filter 0.8s, transform 0.8s;
+    }
+
+    .project-row:hover .project-visual img { filter: grayscale(0%); transform: translateY(-10%) scale(1.05); }
+
+    .project-data h3 {
+      font-family: var(--font-display); font-size: 4rem; font-weight: 800;
+      line-height: 1; margin-bottom: 2rem; text-transform: uppercase;
+    }
+
+    .tech-stack {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem;
+    }
+
+    .tech-tag {
+      padding: 8px 16px; border: 1px solid var(--color-muted);
+      border-radius: 50px; font-size: 0.8rem; text-transform: uppercase;
+    }
+
+    /* ==========================================================================
+       11. MASSIVE FOOTER
+       ========================================================================== */
+    footer {
+      padding: var(--spacing-lg) var(--spacing-md) 2rem;
+      background: var(--color-surface); border-top: 1px solid rgba(255,255,255,0.05);
+      position: relative; overflow: hidden;
+    }
+
+    .footer-huge-text {
+      font-family: var(--font-display); font-size: 18vw; font-weight: 800;
+      line-height: 0.8; text-transform: uppercase; text-align: center;
+      margin-bottom: var(--spacing-md); color: rgba(255,255,255,0.02);
+    }
+
+    .footer-bottom {
+      display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 2rem; font-size: 0.9rem; color: var(--color-muted);
+    }
+
   </style>
 </head>
-<body class="loading">
+<body>
 
+  <!-- Dynamic Noise Canvas -->
+  <canvas id="grain-canvas"></canvas>
+
+  <!-- Physics Cursor -->
   <div class="cursor-dot"></div>
-  <div class="cursor-outline"></div>
+  <div class="cursor-follower"></div>
 
+  <!-- Custom OS Context Menu -->
+  <div id="context-menu">
+    <div class="context-item hover-trigger">Copy Coordinates <span>⌘C</span></div>
+    <div class="context-item hover-trigger">Inspect Source <span>⌥⌘I</span></div>
+    <div class="context-item hover-trigger">Reload Instance <span>⌘R</span></div>
+  </div>
+
+  <!-- Cinematic Preloader -->
   <div id="preloader">
-    <div class="loader-content">
-      <div class="loader-text">System Initialization</div>
-      <div class="loader-percentage" id="loader-count">0%</div>
+    <div class="loader-counter" data-count="000">000</div>
+    <div class="loader-bar-container"><div class="loader-bar"></div></div>
+  </div>
+
+  <!-- Fullscreen Nav Overlay -->
+  <div id="fullscreen-menu">
+    <div class="menu-links">
+      <a href="#" class="menu-link hover-trigger">01. Index</a>
+      <a href="#" class="menu-link hover-trigger">02. Archive</a>
+      <a href="#" class="menu-link hover-trigger">03. Systems</a>
+      <a href="#" class="menu-link hover-trigger">04. Transmission</a>
     </div>
   </div>
 
   <nav>
-    <div class="logo">SC.</div>
-    <div class="nav-links">
-      <span>Index</span>
-      <span>Archive</span>
-      <span>Info</span>
+    <div class="brand hover-trigger">Scriptcade</div>
+    <div class="menu-toggle hover-trigger" id="menu-btn">
+      <div class="line"></div><div class="line"></div><div class="line"></div>
     </div>
   </nav>
 
-  <section id="hero">
-    <h1 class="hero-title">
-      <span class="line-mask"><span>The New</span></span>
-      <span class="line-mask"><span>Scriptcade</span></span>
-    </h1>
-    <p class="hero-subtitle">
-      A curated collection of digital experiences, built from the ground up. 
-      Scroll to explore the interactive archive.
-    </p>
-  </section>
+  <!-- Lerp Scroll Container -->
+  <div id="scroll-container">
+    
+    <header class="hero">
+      <h1 class="hero-title js-split-text">Scriptcade</h1>
+      <h1 class="hero-title js-split-text" style="color: var(--color-muted);">Engine</h1>
+      <div class="hero-meta">
+        <div>
+          <p>Status: Online</p>
+          <p>Version: 4.0.1</p>
+        </div>
+        <a href="#projects" class="magnetic-btn hover-trigger">Explore</a>
+      </div>
+    </header>
 
-  <div class="marquee-container">
-    <div class="marquee-track">
-      <div class="marquee-text">Selected Works — Digital Archives — Playable Modules — </div>
-      <div class="marquee-text">Selected Works — Digital Archives — Playable Modules — </div>
+    <div class="marquee-wrapper">
+      <div class="marquee-track" id="marquee">
+        <!-- Injected via JS for infinite loop -->
+      </div>
     </div>
+
+    <section class="capabilities">
+      <h2 class="section-title">Core Architecture</h2>
+      <div class="grid-2">
+        <div class="service-card hover-trigger">
+          <span class="service-index">01</span>
+          <h3 class="service-title">Neural Logic</h3>
+          <p style="color: var(--color-muted); line-height: 1.6;">Advanced state management and procedural generation parameters for immersive storytelling nodes.</p>
+        </div>
+        <div class="service-card hover-trigger">
+          <span class="service-index">02</span>
+          <h3 class="service-title">Holo Interfaces</h3>
+          <p style="color: var(--color-muted); line-height: 1.6;">WebGL driven components utilizing custom fragment and vertex shaders for real-time glass refractions.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="projects" id="projects">
+      <h2 class="section-title">Deployment Logs</h2>
+      <div id="project-list">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-huge-text">System</div>
+      <div class="footer-bottom">
+        <span>© 2026 Scriptcade</span>
+        <span>Lat: 34.0522 N / Long: 118.2437 W</span>
+      </div>
+    </footer>
+
   </div>
 
-  <section id="work">
-    <h2 class="section-header">Index</h2>
-    <div class="project-grid" id="project-grid">
-      </div>
-  </section>
-
   <script>
-    // ==========================================================================
-    // DATA CONFIGURATION
-    // Add your exact repositories and game data here.
-    // ==========================================================================
-    const projects = [
+    /**
+     * ==========================================================================
+     * 1. DATA INJECTION & DOM SETUP
+     * ==========================================================================
+     */
+    const projectData = [
       {
         title: "Doodle Glider",
-        img: "Doodleglider.png", // Ensure this file is uploaded
-        badgeText: "One Prompt",
-        url: "https://relthecreator.github.io/Doodle-Glider/"
+        desc: "A singular prompt execution creating a fully playable kinematic glider experience.",
+        img: "Doodleglider.png",
+        tech: ["Physics", "Canvas", "A.I. Logic"]
       },
       {
         title: "Neon Protocol",
-        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200",
-        badgeText: "Experimental",
-        url: "#"
+        desc: "Cybernetic UI simulation with heavy data-binding and WebSocket streams.",
+        img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400",
+        tech: ["WebGL", "React", "Node"]
       },
       {
         title: "Terminal 04",
-        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=1200",
-        badgeText: "Logic Core",
-        url: "#"
+        desc: "A brute-force aesthetic logic core meant to stress test visual boundaries.",
+        img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400",
+        tech: ["GLSL", "Three.js", "GSAP"]
       }
     ];
 
-    // ==========================================================================
-    // 1. INJECT PROJECTS INTO HTML
-    // ==========================================================================
-    const grid = document.getElementById('project-grid');
-    grid.innerHTML = projects.map(proj => `
-      <div class="project-card hover-target">
-        <div class="project-image-wrapper">
-          <img src="${proj.img}" alt="${proj.title}" class="project-image" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200'">
+    const projectList = document.getElementById('project-list');
+    projectList.innerHTML = projectData.map(p => `
+      <div class="project-row js-observe">
+        <div class="project-visual">
+          <img src="${p.img}" alt="${p.title}" class="parallax-img">
         </div>
-        <div class="project-info">
-          <div class="project-badge">${proj.badgeText}</div>
-          <h2 class="project-title">${proj.title}</h2>
-          <a href="${proj.url}" target="_blank" class="project-btn hover-target">
-            Explore Module
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
-          </a>
+        <div class="project-data">
+          <h3>${p.title}</h3>
+          <div class="tech-stack">
+            ${p.tech.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+          </div>
+          <p style="color: var(--color-muted); margin-bottom: 2rem;">${p.desc}</p>
+          <a href="#" class="magnetic-btn hover-trigger">Initialize</a>
         </div>
       </div>
     `).join('');
 
-    // ==========================================================================
-    // 2. LOADING ANIMATION SEQUENCE
-    // Counts to 100%, then slides the preloader out and triggers Hero animations
-    // ==========================================================================
+    // Marquee Duplication
+    const marqueeTxt = "<div class="marquee-item">Creative Engineering <span>✦</span> Digital Physics <span>✦</span> Fluid Interfaces <span>✦</span> </div>";
+    document.getElementById('marquee').innerHTML = marqueeTxt.repeat(4);
+
+    // Split Text for Hero Animation
+    document.querySelectorAll('.js-split-text').forEach(el => {
+      const text = el.innerText;
+      el.innerHTML = '';
+      text.split('').forEach((char, i) => {
+        const span = document.createElement('span');
+        span.innerText = char === ' ' ? '\u00A0' : char;
+        span.className = 'char';
+        span.style.transitionDelay = `${(i * 0.04) + 1.5}s`; // Offset past preloader
+        el.appendChild(span);
+      });
+    });
+
+    /**
+     * ==========================================================================
+     * 2. SYNTHETIC AUDIO ENGINE (WEB AUDIO API)
+     * ==========================================================================
+     */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playHoverSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime); // High pitched blip
+      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very quiet
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    /**
+     * ==========================================================================
+     * 3. PRELOADER SEQUENCE
+     * ==========================================================================
+     */
+    let loadCount = 0;
+    const counterEl = document.querySelector('.loader-counter');
+    const barEl = document.querySelector('.loader-bar');
     const preloader = document.getElementById('preloader');
-    const loaderCount = document.getElementById('loader-count');
-    let count = 0;
-
-    const updateLoader = setInterval(() => {
-      // Randomly increment the counter to feel like actual asset loading
-      count += Math.floor(Math.random() * 10) + 2; 
-      
-      if (count > 100) {
-        count = 100;
-        loaderCount.innerText = count + '%';
-        clearInterval(updateLoader);
-        
-        // Sequence finishes
-        setTimeout(() => {
-          preloader.classList.add('loaded');
-          document.body.classList.remove('loading');
-          
-          // Trigger the big text reveal after preloader slides up
-          setTimeout(() => {
-            document.body.classList.add('ready');
-          }, 800);
-          
-          // Remove preloader from DOM so it doesn't block clicks
-          setTimeout(() => {
-            preloader.style.display = 'none';
-          }, 2000);
-          
-        }, 500); // Small pause at 100%
-      } else {
-        loaderCount.innerText = count + '%';
-      }
-    }, 40); // Fast interval for the numbers
-
-    // ==========================================================================
-    // 3. CUSTOM PHYSICS CURSOR
-    // Tracks mouse with a delayed ease on the outer circle
-    // ==========================================================================
-    const cursorDot = document.querySelector('.cursor-dot');
-    const cursorOutline = document.querySelector('.cursor-outline');
-    const hoverTargets = document.querySelectorAll('.hover-target, a');
-
-    // Mouse coordinates
-    let mouseX = 0;
-    let mouseY = 0;
     
-    // Outline coordinates (starts at center)
-    let outlineX = window.innerWidth / 2;
-    let outlineY = window.innerHeight / 2;
+    const loadInterval = setInterval(() => {
+      loadCount += Math.floor(Math.random() * 8) + 1;
+      if (loadCount >= 100) {
+        loadCount = 100;
+        clearInterval(loadInterval);
+        setTimeout(() => {
+          preloader.classList.add('complete');
+          document.body.classList.add('ready');
+        }, 400);
+      }
+      
+      const formatted = loadCount.toString().padStart(3, '0');
+      counterEl.innerText = formatted;
+      counterEl.setAttribute('data-count', formatted);
+      barEl.style.width = `${loadCount}%`;
+    }, 30);
+
+    /**
+     * ==========================================================================
+     * 4. SMOOTH MOMENTUM SCROLLING (LERP)
+     * ==========================================================================
+     */
+    const scrollContainer = document.getElementById('scroll-container');
+    let currentScroll = 0;
+    let targetScroll = 0;
+    let ease = 0.08; // The "weight" of the scroll
+
+    document.body.style.height = `${scrollContainer.getBoundingClientRect().height}px`;
+
+    window.addEventListener('scroll', () => { targetScroll = window.scrollY; });
+    window.addEventListener('resize', () => { 
+      document.body.style.height = `${scrollContainer.getBoundingClientRect().height}px`;
+    });
+
+    function smoothScroll() {
+      currentScroll += (targetScroll - currentScroll) * ease;
+      scrollContainer.style.transform = `translate3d(0, -${currentScroll.toFixed(2)}px, 0)`;
+      
+      // Infinite Marquee integration
+      const marquee = document.getElementById('marquee');
+      marquee.style.transform = `translate3d(-${(currentScroll * 0.2) % 50}%, 0, 0)`;
+
+      // Parallax Images
+      document.querySelectorAll('.parallax-img').forEach(img => {
+        const speed = 0.05;
+        const yPos = (targetScroll * speed);
+        img.style.transform = `translate3d(0, ${yPos}px, 0) scale(1.1)`;
+      });
+
+      requestAnimationFrame(smoothScroll);
+    }
+    smoothScroll();
+
+    /**
+     * ==========================================================================
+     * 5. PHYSICS CURSOR & MAGNETIC BUTTONS
+     * ==========================================================================
+     */
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorFollower = document.querySelector('.cursor-follower');
+    let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+    let followerX = mouseX, followerY = mouseY;
 
     window.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      
-      // Instantly move the tiny dot
-      cursorDot.style.transform = `translate(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%))`;
+      mouseX = e.clientX; mouseY = e.clientY;
+      cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
     });
 
-    // Animate the outline with physics (Lerping)
-    const animateCursor = () => {
-      let distX = mouseX - outlineX;
-      let distY = mouseY - outlineY;
-      
-      // The 0.15 controls the "drag/lag" of the circle. Lower = slower.
-      outlineX = outlineX + (distX * 0.15);
-      outlineY = outlineY + (distY * 0.15);
-      
-      cursorOutline.style.transform = `translate(calc(${outlineX}px - 50%), calc(${outlineY}px - 50%))`;
-      
+    function animateCursor() {
+      followerX += (mouseX - followerX) * 0.15;
+      followerY += (mouseY - followerY) * 0.15;
+      cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
       requestAnimationFrame(animateCursor);
-    };
+    }
     animateCursor();
 
-    // Expand cursor when hovering over links or project cards
-    hoverTargets.forEach(target => {
-      target.addEventListener('mouseenter', () => cursorOutline.classList.add('hovering'));
-      target.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovering'));
+    // Hover interactions + Audio trigger
+    document.querySelectorAll('.hover-trigger, a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorFollower.classList.add('active');
+        playHoverSound();
+      });
+      el.addEventListener('mouseleave', () => cursorFollower.classList.remove('active'));
     });
 
-    // ==========================================================================
-    // 4. SCROLL REVEAL OBSERVER (INTERSECTION OBSERVER)
-    // Triggers the clip-path and fade-up animations when elements enter viewport
-    // ==========================================================================
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.15 // Triggers when 15% of the element is visible
-    };
+    // Advanced Magnetic Math for circular buttons
+    document.querySelectorAll('.magnetic-btn').forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const distanceX = e.clientX - centerX;
+        const distanceY = e.clientY - centerY;
+        
+        // Move button towards cursor (max 20px radius)
+        btn.style.transform = `translate3d(${distanceX * 0.3}px, ${distanceY * 0.3}px, 0)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = `translate3d(0, 0, 0)`;
+      });
+    });
 
-    const scrollObserver = new IntersectionObserver((entries, observer) => {
+    /**
+     * ==========================================================================
+     * 6. CUSTOM CONTEXT MENU (RIGHT CLICK)
+     * ==========================================================================
+     */
+    const contextMenu = document.getElementById('context-menu');
+    
+    window.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // Disable default browser menu
+      contextMenu.style.left = `${e.clientX}px`;
+      contextMenu.style.top = `${e.clientY}px`;
+      contextMenu.classList.add('show');
+      cursorFollower.classList.add('menu-active');
+    });
+
+    window.addEventListener('click', () => {
+      contextMenu.classList.remove('show');
+      cursorFollower.classList.remove('menu-active');
+    });
+
+    /**
+     * ==========================================================================
+     * 7. HTML5 CANVAS FILM GRAIN
+     * ==========================================================================
+     */
+    const canvas = document.getElementById('grain-canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    let w, h;
+    let grainData;
+
+    function resizeCanvas() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      grainData = ctx.createImageData(w, h);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawGrain() {
+      const buffer = new Uint32Array(grainData.data.buffer);
+      for (let i = 0; i < buffer.length; i++) {
+        // Generate monochrome noise (black and white pixels randomly)
+        const v = Math.random() < 0.5 ? 0xFFFFFFFF : 0xFF000000;
+        buffer[i] = v;
+      }
+      ctx.putImageData(grainData, 0, 0);
+      requestAnimationFrame(drawGrain);
+    }
+    drawGrain();
+
+    /**
+     * ==========================================================================
+     * 8. INTERSECTION OBSERVER (REVEALS)
+     * ==========================================================================
+     */
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          observer.unobserve(entry.target); // Only animate once
+        if(entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
         }
       });
-    }, observerOptions);
+    }, { threshold: 0.2 });
 
-    // Attach observer to all project cards
-    document.querySelectorAll('.project-card').forEach(card => {
-      scrollObserver.observe(card);
+    document.querySelectorAll('.js-observe').forEach(el => observer.observe(el));
+
+    /**
+     * ==========================================================================
+     * 9. FULLSCREEN MENU TOGGLE
+     * ==========================================================================
+     */
+    const menuBtn = document.getElementById('menu-btn');
+    menuBtn.addEventListener('click', () => {
+      document.body.classList.toggle('menu-open');
+      playHoverSound();
     });
 
   </script>
