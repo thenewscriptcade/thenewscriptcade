@@ -455,9 +455,17 @@
          * ------------------------------------------------------------------ */
         const gamesList = [
             { 
+                title: "Gambling with Friends", 
+                img: "https://placehold.co/600x400/2563EB/FFFFFF?text=GAMBLING+W%2F+FRIENDS", 
+                tag: "NEW", 
+                category: ["ARCADE", "HIGH STAKES"], 
+                url: "https://thenewscriptcade.github.io/Gambling-with-Friends/",
+                credit: "Zach"
+            },
+            { 
                 title: "PAYOUT 💸", 
                 img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
-                tag: "NEW", 
+                tag: "HOT", 
                 category: ["ARCADE", "HIGH STAKES"], 
                 url: "https://thenewscriptcade.github.io/PAYOUT/" 
             },
@@ -490,6 +498,11 @@
                 badgeHtml = `<span class="absolute top-[-14px] right-[-14px] ${badgeColor} brutal-border border-4 font-heading px-4 py-1 text-base transform rotate-6 z-20 shadow-[4px_4px_0px_#000] no-press">${game.tag}</span>`;
             }
 
+            let creditHtml = '';
+            if (game.credit) {
+                creditHtml = `<p class="text-sm font-bold text-gray-600 mb-2">Created by: <span class="text-sc-black">${game.credit}</span></p>`;
+            }
+
             return `
                 <div class="game-card bg-sc-white brutal-border brutal-shadow flex flex-col relative group cursor-pointer sound-click transition-transform hover:-translate-y-1" onclick="openGame('${game.title.replace(/'/g, "\\'")}', '${game.url}')">
                     ${badgeHtml}
@@ -502,9 +515,10 @@
                     <div class="p-5 flex-grow flex flex-col justify-between">
                         <div>
                             <p class="text-xs font-bold text-sc-red mb-1 uppercase tracking-wider">${game.category.join(" • ")}</p>
-                            <h3 class="text-3xl font-heading mb-4 leading-tight uppercase">${game.title}</h3>
+                            <h3 class="text-3xl font-heading mb-1 leading-tight uppercase">${game.title}</h3>
+                            ${creditHtml}
                         </div>
-                        <button class="w-full bg-sc-black text-sc-white font-heading py-3 text-lg uppercase border-2 border-sc-black group-hover:bg-sc-yellow group-hover:text-sc-black transition-colors">
+                        <button class="w-full bg-sc-black text-sc-white font-heading py-3 text-lg uppercase border-2 border-sc-black group-hover:bg-sc-yellow group-hover:text-sc-black transition-colors mt-4">
                             LAUNCH GAME →
                         </button>
                     </div>
