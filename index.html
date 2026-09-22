@@ -3,932 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCRIPT CADE</title>
+    <title>SCRIPT CADE | RAW TERMINAL</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:opsz,wght@9..40,500;9..40,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:opsz,wght@9..40,400;9..40,700;9..40,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sc-black': '#0B0B0B',
+                        'sc-yellow': '#FFD600',
+                        'sc-white': '#FFFFFF',
+                        'sc-red': '#FF3333',
+                        'sc-blue': '#2B5CFF',
+                    },
+                    fontFamily: {
+                        'archivo': ['"Archivo Black"', 'sans-serif'],
+                        'dm': ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         :root {
-            /* Neo-Brutalist Palette (No Neon, No Glow) */
-            --bg-base: #E8E8E8;
-            --bg-white: #FFFFFF;
-            --color-black: #0B0B0B;
-            --color-red: #FF3333;
-            --color-yellow: #FFD600;
-            --color-blue: #2B5CFF;
-            
-            --font-head: 'Archivo Black', sans-serif;
-            --font-body: 'DM Sans', sans-serif;
-            
-            --border-thick: 4px solid var(--color-black);
-            --border-thin: 2px solid var(--color-black);
-            
-            --shadow-heavy: 8px 8px 0px var(--color-black);
-            --shadow-pressed: 2px 2px 0px var(--color-black);
-            
-            --transition-snap: all 0.1s ease-out;
-        }
-
-        /* Blocky Scrollbar */
-        ::-webkit-scrollbar { width: 12px; border-left: var(--border-thin); }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: var(--color-black); }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
+            --border-heavy: 4px solid #0B0B0B;
+            --shadow-heavy: 8px 8px 0px #0B0B0B;
         }
 
         body {
-            background-color: var(--bg-base);
-            color: var(--color-black);
-            font-family: var(--font-body);
-            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            background-color: #f0f0f0;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            /* Architectural dot grid */
-            background-image: radial-gradient(var(--color-black) 1.5px, transparent 1.5px);
+            /* Panning dot-grid background */
+            background-image: radial-gradient(#0B0B0B 2px, transparent 2px);
             background-size: 30px 30px;
-            background-position: 0 0;
-            animation: panGrid 3s linear infinite;
+            animation: panGrid 20s linear infinite;
         }
 
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Archivo Black', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Brutalist Utilities */
+        .brutal-border {
+            border: var(--border-heavy);
+        }
+        
+        .brutal-shadow {
+            box-shadow: var(--shadow-heavy);
+            transition: all 0.1s ease;
+        }
+
+        .brutal-shadow:active:not(.no-press) {
+            box-shadow: 0px 0px 0px #0B0B0B;
+            transform: translate(8px, 8px);
+        }
+
+        /* Hover image color transition */
+        .game-img {
+            filter: grayscale(100%);
+            transition: filter 0.3s ease;
+        }
+        .game-card:hover .game-img {
+            filter: grayscale(0%);
+        }
+
+        /* Animations */
         @keyframes panGrid {
             0% { background-position: 0 0; }
-            100% { background-position: -30px -30px; }
+            100% { background-position: -60px -60px; }
         }
 
-        /* INITIALIZATION SCREEN */
-        #landing-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: var(--color-yellow);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border: 12px solid var(--color-black);
-            transition: transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
-        }
-
-        .landing-wrapper {
-            background: var(--bg-white);
-            padding: 60px;
-            border: var(--border-thick);
-            box-shadow: 16px 16px 0px var(--color-black);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            max-width: 90%;
-        }
-
-        .title-brutal {
-            font-family: var(--font-head);
-            font-size: clamp(3rem, 10vw, 8rem);
-            line-height: 0.9;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-            color: var(--color-black);
-        }
-
-        .launch-btn {
-            margin-top: 20px;
-            background: var(--color-red);
-            color: var(--bg-white);
-            border: var(--border-thick);
-            padding: 16px 48px;
-            font-family: var(--font-head);
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: var(--shadow-heavy);
-            transition: var(--transition-snap);
-        }
-
-        .launch-btn:hover {
-            transform: translate(2px, 2px);
-            box-shadow: 6px 6px 0px var(--color-black);
-        }
-
-        .launch-btn:active {
-            transform: translate(6px, 6px);
-            box-shadow: var(--shadow-pressed);
-        }
-
-        #navbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: var(--bg-white);
-            border-bottom: var(--border-thick);
-            padding: 16px 4%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .brand-logo-text {
-            font-family: var(--font-head);
-            font-size: 2rem;
-            letter-spacing: -1px;
-            color: var(--color-black);
-            cursor: pointer;
-            background: var(--color-yellow);
-            padding: 4px 12px;
-            border: var(--border-thick);
-            box-shadow: 4px 4px 0px var(--color-black);
-            transition: var(--transition-snap);
-        }
-        
-        .brand-logo-text:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-
-        .search-box {
-            position: relative;
-            flex: 1;
-            max-width: 500px;
-            min-width: 240px;
-        }
-
-        .search-input {
-            width: 100%;
-            background: var(--bg-white);
-            border: var(--border-thick);
-            color: var(--color-black);
-            padding: 14px 20px 14px 50px;
-            font-family: var(--font-head);
-            font-size: 1.1rem;
-            box-shadow: 4px 4px 0px var(--color-black);
-            outline: none;
-            transition: var(--transition-snap);
-        }
-
-        .search-input:focus {
-            background: var(--color-yellow);
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-
-        .search-input::placeholder { color: #666; }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--color-black);
-            pointer-events: none;
-            stroke-width: 4px;
-        }
-
-        .audio-btn {
-            background: var(--bg-white);
-            border: var(--border-thick);
-            color: var(--color-black);
-            padding: 10px 20px;
-            font-family: var(--font-head);
-            font-size: 1rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 4px 4px 0px var(--color-black);
-            transition: var(--transition-snap);
-        }
-
-        .audio-btn:hover { background: var(--bg-base); }
-        .audio-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-        .audio-btn.active {
-            background: var(--color-blue);
-            color: var(--bg-white);
-        }
-
-        #main-layout {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 60px 4% 80px;
-            position: relative;
-        }
-
-        .filter-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 60px;
-            overflow-x: auto;
-            padding-bottom: 12px;
-        }
-        
-        .filter-row::-webkit-scrollbar { height: 8px; border-top: var(--border-thin); border-bottom: var(--border-thin); }
-
-        .filter-btn {
-            background: var(--bg-white);
-            border: var(--border-thick);
-            color: var(--color-black);
-            padding: 12px 24px;
-            font-family: var(--font-head);
-            font-size: 1rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 4px 4px 0px var(--color-black);
-            transition: var(--transition-snap);
-        }
-
-        .filter-btn:hover { background: var(--color-yellow); }
-        .filter-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-
-        .filter-btn.active {
-            background: var(--color-black);
-            color: var(--bg-white);
-            box-shadow: 4px 4px 0px var(--color-red);
-        }
-
-        .section-title-text {
-            font-family: var(--font-head);
-            font-size: 3rem;
-            color: var(--color-black);
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 30px;
-            display: inline-block;
-            background: var(--bg-white);
-            padding: 10px 20px;
-            border: var(--border-thick);
-            box-shadow: 6px 6px 0px var(--color-black);
-        }
-
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 40px;
-            margin-bottom: 80px;
-        }
-
-        .game-card {
-            background: var(--bg-white);
-            border: var(--border-thick);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow-heavy);
-            transition: var(--transition-snap);
-        }
-
-        .card-thumb-wrapper {
-            position: relative;
-            height: 220px;
-            border-bottom: var(--border-thick);
-            background: var(--color-black);
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .card-thumb {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(100%) contrast(120%);
-            transition: filter 0.2s;
-        }
-
-        .game-card:hover .card-thumb {
-            filter: grayscale(0%) contrast(100%);
-        }
-
-        .card-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-family: var(--font-head);
-            font-size: 1rem;
-            padding: 6px 12px;
-            background: var(--color-yellow);
-            color: var(--color-black);
-            border: var(--border-thick);
-            text-transform: uppercase;
-            box-shadow: 4px 4px 0px var(--color-black);
-            z-index: 2;
-        }
-
-        .card-badge.hot { background: var(--color-red); color: var(--bg-white); }
-        .card-badge.new { background: var(--color-blue); color: var(--bg-white); }
-
-        .card-body {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            flex: 1;
-            justify-content: space-between;
-        }
-
-        .card-title {
-            font-family: var(--font-head);
-            font-size: 1.6rem;
-            color: var(--color-black);
-            line-height: 1.1;
-            text-transform: uppercase;
-        }
-
-        .card-category {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--color-black);
-            text-transform: uppercase;
-            margin-top: 8px;
-            display: inline-block;
-            border-bottom: 2px solid var(--color-black);
-        }
-
-        .btn-launch-game {
-            background: var(--bg-white);
-            color: var(--color-black);
-            border: var(--border-thick);
-            padding: 14px;
-            font-family: var(--font-head);
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 4px 4px 0px var(--color-black);
-            transition: var(--transition-snap);
-        }
-
-        .game-card:hover .btn-launch-game {
-            background: var(--color-black);
-            color: var(--bg-white);
-        }
-
-        .btn-launch-game:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-
-        #fullscreen-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            background: var(--bg-base);
-            display: none;
-            flex-direction: column;
-        }
-
-        #game-overlay-header {
-            height: 70px;
-            background: var(--bg-white);
-            border-bottom: var(--border-thick);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-        }
-
-        .overlay-title {
-            font-family: var(--font-head);
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            color: var(--color-black);
-            background: var(--color-yellow);
-            padding: 4px 12px;
-            border: var(--border-thick);
-        }
-
-        .overlay-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .overlay-btn {
-            background: var(--bg-white);
-            border: var(--border-thick);
-            color: var(--color-black);
-            padding: 8px 16px;
-            font-family: var(--font-head);
-            font-size: 1rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 4px 4px 0px var(--color-black);
-            transition: var(--transition-snap);
-        }
-
-        .overlay-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px var(--color-black);
-        }
-
-        .overlay-btn.exit-btn {
-            background: var(--color-red);
-            color: var(--bg-white);
-        }
-
-        #game-frame {
-            width: 100%;
-            height: calc(100vh - 70px);
-            border: none;
-            background: var(--color-black);
-        }
-
-        .thumb-fallback {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #E8E8E8;
-            color: var(--color-black);
-            font-family: var(--font-head);
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            border: 4px dashed var(--color-black);
-        }
-
-        /* --- STREAMING_CHUNK:Background Animation Styles --- */
-        .bg-marquee-container {
-            position: fixed;
-            inset: -50%;
-            z-index: -1;
-            pointer-events: none;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .bg-marquee {
-            position: absolute;
-            width: 200vw;
-            background: var(--color-yellow);
-            color: var(--color-black);
-            font-family: var(--font-head);
-            font-size: clamp(3rem, 5vw, 6rem);
-            text-transform: uppercase;
-            white-space: nowrap;
-            border-top: var(--border-thick);
-            border-bottom: var(--border-thick);
-            padding: 12px 0;
-            transform: rotate(-6deg);
-            display: flex;
-            box-shadow: 12px 12px 0 var(--color-black);
-        }
-
-        .bg-marquee.reverse {
-            background: var(--bg-white);
-            transform: rotate(12deg);
-            top: 25%;
-            font-size: clamp(2rem, 3.5vw, 4rem);
-        }
-
-        .marquee-track {
-            display: flex;
-            animation: scrollMarquee 20s linear infinite;
-        }
-
-        .bg-marquee.reverse .marquee-track {
-            animation-direction: reverse;
-            animation-duration: 25s;
-        }
-
-        @keyframes scrollMarquee {
-            0% { transform: translateX(0); }
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
             100% { transform: translateX(-50%); }
         }
 
-        .marquee-item {
-            padding: 0 40px;
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); display: none;}
+        }
+
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 15s linear infinite;
+        }
+
+        .shape-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .slide-up-exit {
+            animation: slideUp 0.8s cubic-bezier(0.87, 0, 0.13, 1) forwards;
         }
         
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            border-top: var(--border-heavy);
+            border-bottom: var(--border-heavy);
+            background: #FFD600;
+        }
+
+        /* Floating shapes positioning */
         .bg-shape {
             position: fixed;
             z-index: -1;
-            border: var(--border-thick);
+            border: var(--border-heavy);
             box-shadow: var(--shadow-heavy);
-            pointer-events: none;
         }
-
-        .shape-circle {
-            border-radius: 50%;
-            width: 15vw;
-            height: 15vw;
-            min-width: 120px;
-            min-height: 120px;
-            top: 15%;
-            left: 5%;
-            background: var(--color-red);
-            animation: floatShape1 6s ease-in-out infinite alternate;
-        }
-
-        .shape-square {
-            width: 12vw;
-            height: 12vw;
-            min-width: 90px;
-            min-height: 90px;
-            bottom: 10%;
-            left: 10%;
-            background: var(--color-blue);
-            animation: floatShape2 8s ease-in-out infinite alternate;
-        }
-
-        .shape-pill {
-            width: 8vw;
-            height: 22vw;
-            min-width: 60px;
-            min-height: 160px;
-            border-radius: 100px;
-            top: 35%;
-            right: 8%;
-            background: var(--bg-white);
-            animation: spinShape 14s linear infinite;
-        }
-
-        @keyframes floatShape1 {
-            0% { transform: translateY(0) translateX(0) rotate(0deg); }
-            100% { transform: translateY(-40px) translateX(20px) rotate(15deg); }
-        }
-
-        @keyframes floatShape2 {
-            0% { transform: translateY(0) scale(1) rotate(0deg); }
-            100% { transform: translateY(-30px) scale(1.1) rotate(-20deg); }
-        }
-
-        @keyframes spinShape {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        #player-iframe {
+            width: 100%;
+            height: calc(100vh - 64px);
+            border: none;
         }
     </style>
 </head>
-<body>
+<body class="text-sc-black relative min-h-screen">
 
-    <div class="bg-shape shape-circle"></div>
-    <div class="bg-shape shape-square"></div>
-    <div class="bg-shape shape-pill"></div>
+    <div class="bg-shape bg-sc-red rounded-full w-48 h-48 shape-float top-20 left-10"></div>
+    <div class="bg-shape bg-sc-blue w-40 h-40 shape-float bottom-40 right-20" style="animation-delay: -2s;"></div>
+    <div class="bg-shape bg-sc-white rounded-full w-64 h-24 shape-float top-1/2 right-1/3" style="animation-delay: -4s;"></div>
 
-    <div class="bg-marquee-container">
-        <div class="bg-marquee">
-            <div class="marquee-track">
-                <div class="marquee-item">SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE //</div>
-                <div class="marquee-item">SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE //</div>
-                <div class="marquee-item">SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE //</div>
+    <div id="landing-screen" class="fixed inset-0 z-50 bg-sc-yellow flex flex-col items-center justify-center brutal-border">
+        <h1 class="text-7xl md:text-9xl mb-8 tracking-tighter text-center">SCRIPT<br>CADE</h1>
+        <p class="font-bold text-xl md:text-2xl mb-12 uppercase">RAW TERMINAL // HIGH VOLTAGE</p>
+        <button id="enter-btn" class="brutal-border brutal-shadow bg-sc-red text-sc-white font-heading text-3xl md:text-5xl py-6 px-12 hover:bg-sc-black sound-click">
+            ENTER SYSTEM
+        </button>
+    </div>
+
+    <nav class="sticky top-0 z-40 bg-sc-white brutal-border border-b-4 flex items-center justify-between p-4 px-6 shadow-[0px_8px_0px_#0B0B0B]">
+        <div class="font-heading text-2xl md:text-3xl tracking-tight text-sc-blue">SCRIPT CADE</div>
+        
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center border-4 border-sc-black bg-sc-white p-1">
+                <input type="text" placeholder="SEARCH ARCHIVE..." class="outline-none px-2 font-bold uppercase w-48 bg-transparent">
+                <button class="bg-sc-yellow px-3 py-1 font-heading border-2 border-sc-black hover:bg-sc-black hover:text-sc-white sound-click">GO</button>
             </div>
+            
+            <button id="audio-toggle" class="brutal-border brutal-shadow no-press bg-sc-black text-sc-white p-2 font-bold uppercase sound-click">
+                AUDIO: ON
+            </button>
         </div>
-        <div class="bg-marquee reverse">
-            <div class="marquee-track">
-                <div class="marquee-item">SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL //</div>
-                <div class="marquee-item">SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL //</div>
-                <div class="marquee-item">SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL //</div>
-            </div>
+    </nav>
+
+    <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8">
+        <div class="animate-marquee font-heading text-xl md:text-3xl tracking-widest">
+            <span>SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE // SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL // </span>
+            <span>SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE // SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL // </span>
         </div>
     </div>
 
-    <!-- INITIALIZATION SCREEN -->
-    <div id="landing-screen">
-        <div class="landing-wrapper">
-            <h1 class="title-brutal">SCRIPT<br>CADE</h1>
-            <p style="font-weight: 700; font-size: 1.2rem; text-transform: uppercase; border-bottom: 4px solid #000; padding-bottom: 4px;">
-                RAW ENTERTAINMENT TERMINAL
-            </p>
-            <button class="launch-btn" onclick="launchArcade()">
-                ENTER SYSTEM
-            </button>
-        </div>
-    </div>
-
-    <!-- NAVBAR -->
-    <header id="navbar">
-        <div class="brand-logo-text" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-            SCRIPT CADE
+    <main class="max-w-7xl mx-auto px-4 py-8 relative z-10">
+        
+        <div class="flex flex-wrap gap-4 mb-12 justify-center">
+            <button class="filter-btn active brutal-border brutal-shadow bg-sc-blue text-sc-white font-bold py-2 px-6 uppercase sound-click">ALL GAMES</button>
+            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">TRENDING</button>
+            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">ACTION</button>
+            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">LATEST</button>
+            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">CURATED</button>
         </div>
 
-        <div class="search-box">
-            <input type="text" id="search-input" class="search-input" placeholder="SEARCH DATABASE..." oninput="handleSearch()">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </div>
+        <!-- TRENDING NOW Section -->
+        <section class="mb-16">
+            <h2 class="text-4xl md:text-5xl mb-8 bg-sc-black text-sc-white inline-block px-4 py-2 brutal-shadow transform -rotate-2">TRENDING NOW</h2>
+            <div id="hot-games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Injected via JS -->
+            </div>
+        </section>
 
-        <div>
-            <button id="audio-toggle-btn" class="audio-btn" onclick="toggleAudio()">
-                <svg id="audio-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                <span id="audio-status">AUDIO OFF</span>
-            </button>
-        </div>
-    </header>
-
-    <main id="main-layout">
-        <div class="filter-row">
-            <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL GAMES</button>
-            <button class="filter-btn" onclick="setFilter('HOT', this)">TRENDING</button>
-            <button class="filter-btn" onclick="setFilter('ACTION', this)">ACTION</button>
-            <button class="filter-btn" onclick="setFilter('NEW', this)">LATEST</button>
-            <button class="filter-btn" onclick="setFilter('FEATURED', this)">CURATED</button>
-        </div>
-
-        <div id="hot-section">
-            <h2 class="section-title-text" style="background: var(--color-red); color: var(--bg-white);">
-                TRENDING NOW
-            </h2>
-            <div class="game-grid" id="hot-grid"></div>
-        </div>
-
-        <div id="all-section" style="margin-top: 80px;">
-            <h2 class="section-title-text" style="background: var(--color-blue); color: var(--bg-white);">
-                ALL ARCHIVES
-            </h2>
-            <div class="game-grid" id="main-grid"></div>
-        </div>
+        <!-- ALL ARCHIVES Section -->
+        <section>
+            <h2 class="text-4xl md:text-5xl mb-8 bg-sc-yellow border-4 border-sc-black inline-block px-4 py-2 brutal-shadow transform rotate-1">ALL ARCHIVES</h2>
+            <div id="all-games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Injected via JS -->
+            </div>
+        </section>
     </main>
 
-    <!-- OVERLAY -->
-    <div id="fullscreen-overlay">
-        <div id="game-overlay-header">
-            <div class="overlay-title">
-                <span id="playing-title">ACTIVE</span>
-            </div>
-            <div class="overlay-controls">
-                <button class="overlay-btn" onclick="reloadIframe()">RELOAD</button>
-                <button class="overlay-btn" onclick="toggleFullscreenAPI()">EXPAND</button>
-                <button class="overlay-btn exit-btn" onclick="closeGame()">CLOSE X</button>
+    <div id="game-modal" class="fixed inset-0 z-[100] bg-sc-black hidden flex-col">
+        <div class="flex items-center justify-between p-4 bg-sc-white brutal-border border-b-4 border-sc-black">
+            <div id="modal-title" class="font-heading text-xl md:text-2xl truncate text-sc-blue w-1/2">GAME TITLE</div>
+            <div class="flex gap-4">
+                <button id="btn-reload" class="brutal-border brutal-shadow bg-sc-yellow font-bold px-4 py-2 sound-click">RELOAD</button>
+                <button id="btn-expand" class="brutal-border brutal-shadow bg-sc-white font-bold px-4 py-2 hidden md:block sound-click">EXPAND</button>
+                <button id="btn-close" class="brutal-border brutal-shadow bg-sc-red text-sc-white font-bold px-4 py-2 sound-click">CLOSE</button>
             </div>
         </div>
-        <iframe id="game-frame" sandbox="allow-scripts allow-pointer-lock allow-same-origin allow-forms"></iframe>
+        <div class="flex-grow bg-[#222] relative w-full h-full flex items-center justify-center">
+            <!-- Loading indicator -->
+            <div id="loading-text" class="absolute text-sc-white font-heading text-3xl animate-pulse">BOOTING...</div>
+            <iframe id="player-iframe" src="" allowfullscreen class="relative z-10 w-full h-full"></iframe>
+        </div>
     </div>
 
     <script>
-        // --- AUDIO SYSTEM (Mechanical / Physical Sounds) ---
-        let audioCtx = null;
-        let audioActive = false;
+        // Web Audio API for physical sound generation
+        let audioCtx;
+        let isAudioEnabled = true;
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
-        // Simulating physical button switches instead of digital beeps
-        function playSound(type) {
-            if (!audioActive || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
+        function playHoverTick() {
+            if (!isAudioEnabled || !audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
-
-            osc.connect(filter);
-            filter.connect(gain);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
             gain.connect(audioCtx.destination);
-
-            const now = audioCtx.currentTime;
-
-            if (type === 'hover') {
-                // Subtle mechanical tick
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(800, now);
-                filter.type = 'highpass';
-                filter.frequency.setValueAtTime(2000, now);
-                gain.gain.setValueAtTime(0.01, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
-                osc.start(now);
-                osc.stop(now + 0.02);
-            } else if (type === 'click') {
-                // Heavy, physical clack
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.05);
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1000, now);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-            } else if (type === 'launch') {
-                // Heavy industrial thud
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(20, now + 0.2);
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(500, now);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.0, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
         }
 
-        function toggleAudio() {
-            audioActive = !audioActive;
-            const btn = document.getElementById('audio-toggle-btn');
-            const statusText = document.getElementById('audio-status');
-            const icon = document.getElementById('audio-icon');
-            
-            if (!audioActive) {
-                btn.classList.remove('active');
-                statusText.innerText = 'AUDIO OFF';
-                icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
-            } else {
-                btn.classList.add('active');
-                statusText.innerText = 'AUDIO ON';
-                icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>';
-                initAudio();
-                playSound('click');
-            }
+        function playClickClack() {
+            if (!isAudioEnabled || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- STREAMING_CHUNK:Data loading and rendering logic... ---
-       const hotGamesList = [
-    { 
-        title: "Nut & Bolt Sort", 
-        img: "nutboltthumb.png", 
-        tag: "HOT", 
-        category: ["PUZZLE"], 
-        url: "https://thenewscriptcade.github.io/nut-bolt-sort/" 
-    }
-    { 
-        title: "Egg Crate", 
-        img: "nutboltthumb.png", 
-        tag: "NEW", 
-        category: ["LATEST"], 
-        url: "https://thenewscriptcade.github.io/EggCrates/" 
-    }
-];
+        function playLaunchThud() {
+            if (!isAudioEnabled || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
 
-const gamesList = [
-    { 
-        title: "Nut & Bolt Sort", 
-        img: "nutboltthumb.png", 
-        tag: "HOT", 
-        category: ["PUZZLE"], 
-        url: "https://thenewscriptcade.github.io/nut-bolt-sort/" 
-    }
-];
-        let currentFilter = 'ALL';
+        // ------------------------------------------------------------------
+        // 🎮 MASTER GAME LIST - ADD YOUR GAMES HERE! 🎮
+        // ------------------------------------------------------------------
+        // To add a new game, just copy the template below and paste it 
+        // before the closing bracket ]; of the gamesList array.
+        // Don't forget the comma at the end of each game block!
+        //
+        // TEMPLATE:
+        // { 
+        //     title: "Game Name",                 // Name of the game
+        //     img: "image_url.png",               // Thumbnail image URL
+        //     tag: "HOT",                         // Badge text (e.g., "HOT", "NEW", or "")
+        //     category: ["ACTION", "PUZZLE"],     // Categories for filtering
+        //     url: "https://link-to-game.com/"    // The URL of the game to load
+        // },
+        // ------------------------------------------------------------------
+        
+        const gamesList = [
+            { 
+                title: "Nut & Bolt Sort", 
+                img: "https://placehold.co/400x300/0B0B0B/FFD600?text=NUT+%26+BOLT", 
+                tag: "HOT", 
+                category: ["PUZZLE"], 
+                url: "https://thenewscriptcade.github.io/nut-bolt-sort/" 
+            },
+            { 
+                title: "Egg Crate", 
+                img: "https://placehold.co/400x300/FF3333/FFFFFF?text=EGG+CRATE", 
+                tag: "NEW", 
+                category: ["LATEST"], 
+                url: "https://thenewscriptcade.github.io/EggCrates/" 
+            }
+        ];
 
-        function launchArcade() {
+        // UI Interaction Bindings
+        document.getElementById('enter-btn').addEventListener('click', () => {
             initAudio();
-            playSound('launch');
-            const landing = document.getElementById('landing-screen');
-            
-            // Hard slide up instead of a fade
-            landing.style.transform = 'translateY(-100vh)';
-            
-            setTimeout(() => {
-                landing.style.display = 'none';
-            }, 400);
-        }
+            playLaunchThud();
+            document.getElementById('landing-screen').classList.add('slide-up-exit');
+        });
 
-        function renderGrids() {
-            renderSection(hotGamesList, 'hot-grid', 'hot');
-            renderSection(gamesList, 'main-grid', 'main');
-            attachInteractiveEffects();
-        }
+        const audioToggle = document.getElementById('audio-toggle');
+        audioToggle.addEventListener('click', () => {
+            isAudioEnabled = !isAudioEnabled;
+            if(isAudioEnabled) initAudio();
+            audioToggle.innerText = isAudioEnabled ? "AUDIO: ON" : "AUDIO: OFF";
+            audioToggle.classList.toggle('bg-sc-black', isAudioEnabled);
+            audioToggle.classList.toggle('text-sc-white', isAudioEnabled);
+            audioToggle.classList.toggle('bg-sc-red', !isAudioEnabled);
+            audioToggle.classList.toggle('text-sc-black', !isAudioEnabled);
+        });
 
-        function renderSection(list, elementId, listType) {
-            const grid = document.getElementById(elementId);
-            grid.innerHTML = '';
-
-            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-
-            const filtered = list.filter(game => {
-                const matchesSearch = game.title.toLowerCase().includes(searchTerm);
-                const matchesCategory = currentFilter === 'ALL' || 
-                                       (game.category && game.category.includes(currentFilter)) ||
-                                       (game.tag === currentFilter);
-                return matchesSearch && matchesCategory;
+        // Add interaction sounds to interactive elements
+        function attachSoundEvents() {
+            document.querySelectorAll('button, .game-card, input').forEach(el => {
+                el.addEventListener('mouseenter', playHoverTick);
             });
+            document.querySelectorAll('.sound-click').forEach(el => {
+                el.addEventListener('mousedown', playClickClack);
+            });
+        }
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--color-black); font-family: var(--font-head); font-size: 1.5rem; background: var(--bg-white); border: var(--border-thick); box-shadow: var(--shadow-heavy);">NO RESULTS FOUND.</div>`;
-                return;
+        // Render Game Card HTML
+        function generateGameCard(game) {
+            let badgeHtml = '';
+            if (game.tag) {
+                const badgeColor = game.tag === "HOT" ? "bg-sc-red text-sc-white" : "bg-sc-blue text-sc-white";
+                badgeHtml = `<span class="absolute top-[-10px] right-[-10px] ${badgeColor} brutal-border font-heading px-3 py-1 text-sm transform rotate-6 z-20 brutal-shadow no-press">${game.tag}</span>`;
             }
 
-            filtered.forEach((game, index) => {
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                
-                let badgeClass = '';
-                if(game.tag === 'HOT') badgeClass = 'hot';
-                if(game.tag === 'NEW') badgeClass = 'new';
-
-                card.innerHTML = `
-                    <div class="card-thumb-wrapper" onclick="playGame('${listType}', ${index})">
-                        ${game.tag ? `<span class="card-badge ${badgeClass}">${game.tag}</span>` : ''}
-                        <img class="card-thumb" src="${game.img}" alt="${game.title}" onerror="handleImgError(this)">
-                    </div>
-                    <div class="card-body">
-                        <div>
-                            <h3 class="card-title">${game.title}</h3>
-                            <div class="card-category">${game.category ? game.category[0] : 'SYS'}</div>
+            return `
+                <div class="game-card bg-sc-white brutal-border brutal-shadow flex flex-col relative group cursor-pointer sound-click" onclick="openGame('${game.title}', '${game.url}')">
+                    ${badgeHtml}
+                    <div class="h-48 border-b-4 border-sc-black overflow-hidden bg-sc-black relative">
+                        <img src="${game.img}" alt="${game.title}" class="w-full h-full object-cover game-img">
+                        <div class="absolute inset-0 bg-sc-yellow/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <span class="font-heading text-3xl text-sc-black">PLAY</span>
                         </div>
-                        <button class="btn-launch-game" onclick="playGame('${listType}', ${index})">
+                    </div>
+                    <div class="p-4 flex-grow flex flex-col justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-sc-black/50 mb-1">${game.category.join(", ")}</p>
+                            <h3 class="text-2xl font-heading mb-4">${game.title}</h3>
+                        </div>
+                        <button class="w-full bg-sc-black text-sc-white font-bold py-3 uppercase border-2 border-sc-black group-hover:bg-sc-yellow group-hover:text-sc-black transition-colors duration-100">
                             PLAY NOW
                         </button>
                     </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function handleImgError(img) {
-            const parent = img.parentElement;
-            img.style.display = 'none';
-            const fallback = document.createElement('div');
-            fallback.className = 'thumb-fallback';
-            fallback.innerHTML = `
-                <span>NO ASSET</span>
+                </div>
             `;
-            parent.appendChild(fallback);
         }
 
-        function setFilter(category, btnElement) {
-            playSound('click');
-            currentFilter = category;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
-            renderGrids();
+        function renderGames() {
+            const hotContainer = document.getElementById('hot-games-grid');
+            const allContainer = document.getElementById('all-games-grid');
+            
+            // Show games with HOT or NEW tags in the trending section automatically
+            const trendingGames = gamesList.filter(game => game.tag === "HOT" || game.tag === "NEW");
+            
+            hotContainer.innerHTML = trendingGames.map(generateGameCard).join('');
+            allContainer.innerHTML = gamesList.map(generateGameCard).join('');
+            
+            attachSoundEvents();
         }
 
-        function handleSearch() {
-            renderGrids();
-        }
-
-        // --- STREAMING_CHUNK:Game window handling... ---
-        function playGame(listType, index) {
+        // Game Modal Logic
+        const modal = document.getElementById('game-modal');
+        const iframe = document.getElementById('player-iframe');
+        const modalTitle = document.getElementById('modal-title');
+        
+        window.openGame = function(title, url) {
             initAudio();
-            playSound('launch');
-            
-            const list = listType === 'hot' ? hotGamesList : gamesList;
-            const game = list[index];
-            if (!game) return;
-
-            document.getElementById('playing-title').innerText = game.title;
-            const overlay = document.getElementById('fullscreen-overlay');
-            
-            overlay.style.display = 'flex';
-            document.getElementById('game-frame').src = game.url;
-            document.body.style.overflow = 'hidden'; 
-        }
-
-        function closeGame() {
-            playSound('click');
-            const overlay = document.getElementById('fullscreen-overlay');
-            overlay.style.display = 'none';
-            document.getElementById('game-frame').src = '';
-            document.body.style.overflow = 'auto';
-
-            if (document.fullscreenElement && document.exitFullscreen) { 
-                document.exitFullscreen().catch(() => {}); 
-            }
-        }
-
-        function reloadIframe() {
-            playSound('click');
-            const frame = document.getElementById('game-frame');
-            frame.src = frame.src;
-        }
-
-        function toggleFullscreenAPI() {
-            playSound('click');
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-            }
-        }
-
-        function attachInteractiveEffects() {
-            // Re-bind mechanical hover sounds to new elements
-            document.querySelectorAll('button, .search-input, .brand-logo-text, .card-thumb-wrapper').forEach(el => {
-                // Ensure we don't attach multiple times
-                el.removeEventListener('mouseenter', playHoverSound);
-                el.addEventListener('mouseenter', playHoverSound);
-            });
-        }
-
-        function playHoverSound() {
-            playSound('hover');
-        }
-
-        // Initializer
-        window.onload = function() {
-            renderGrids();
+            playLaunchThud();
+            modalTitle.innerText = title;
+            iframe.src = url;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // prevent bg scroll
         };
+
+        document.getElementById('btn-close').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            iframe.src = '';
+            document.body.style.overflow = '';
+        });
+
+        document.getElementById('btn-reload').addEventListener('click', () => {
+            if(iframe.src) iframe.src = iframe.src;
+        });
+
+        document.getElementById('btn-expand').addEventListener('click', () => {
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        });
+
+        // Initialize App
+        window.onload = () => {
+            renderGames();
+        };
+
     </script>
 </body>
 </html>
