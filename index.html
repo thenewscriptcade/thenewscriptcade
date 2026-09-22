@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCRIPT CADE | RAW TERMINAL</title>
+    <title>SCRIPT CADE | PAYOUT DROP</title>
     
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:opsz,wght@9..40,400;9..40,700;9..40,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,opsz,wght@0,9..40,400..1000;1,9..40,400..1000&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'sc-black': '#0B0B0B',
+                        'sc-black': '#000000',
                         'sc-yellow': '#FFD600',
                         'sc-white': '#FFFFFF',
-                        'sc-red': '#FF3333',
-                        'sc-blue': '#2B5CFF',
+                        'sc-red': '#FF0000',
+                        'sc-blue': '#2563EB',
+                        'sc-green': '#10B981',
                     },
                     fontFamily: {
                         'archivo': ['"Archivo Black"', 'sans-serif'],
@@ -32,18 +39,29 @@
 
     <style>
         :root {
-            --border-heavy: 4px solid #0B0B0B;
-            --shadow-heavy: 8px 8px 0px #0B0B0B;
+            --border-heavy: 4px solid #000000;
+            --shadow-heavy: 8px 8px 0px #000000;
         }
 
         body {
             font-family: 'DM Sans', sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f4f4f4;
             overflow-x: hidden;
-            /* Panning dot-grid background */
-            background-image: radial-gradient(#0B0B0B 2px, transparent 2px);
+            color: #000000;
+        }
+
+        /* Background grid layer */
+        .bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -10;
+            pointer-events: none;
+            background-image: radial-gradient(#000000 2px, transparent 2px);
             background-size: 30px 30px;
-            animation: panGrid 20s linear infinite;
+            animation: panGrid 25s linear infinite;
         }
 
         h1, h2, h3, h4, .font-heading {
@@ -51,31 +69,53 @@
             text-transform: uppercase;
         }
 
-        /* Brutalist Utilities */
         .brutal-border {
             border: var(--border-heavy);
         }
         
         .brutal-shadow {
             box-shadow: var(--shadow-heavy);
-            transition: all 0.1s ease;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .brutal-shadow:hover:not(.no-press) {
+            transform: translate(-3px, -3px);
+            box-shadow: 11px 11px 0px #000000;
         }
 
         .brutal-shadow:active:not(.no-press) {
-            box-shadow: 0px 0px 0px #0B0B0B;
+            box-shadow: 0px 0px 0px #000000;
             transform: translate(8px, 8px);
         }
 
-        /* Hover image color transition */
-        .game-img {
-            filter: grayscale(100%);
-            transition: filter 0.3s ease;
+        /* Keycaps for Command Console */
+        .keycap {
+            border: var(--border-heavy);
+            box-shadow: 6px 6px 0px #000000;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s;
         }
-        .game-card:hover .game-img {
-            filter: grayscale(0%);
+        .keycap:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px #000000;
+        }
+        .keycap:active {
+            box-shadow: 0px 0px 0px #000000;
+            transform: translate(6px, 6px);
+        }
+        .keycap.active-key {
+            background-color: #FF0000;
+            color: #FFFFFF;
         }
 
-        /* Animations */
+        .game-img {
+            filter: grayscale(80%) contrast(110%);
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+        .game-card:hover .game-img {
+            filter: grayscale(0%) contrast(100%);
+            transform: scale(1.05);
+        }
+
         @keyframes panGrid {
             0% { background-position: 0 0; }
             100% { background-position: -60px -60px; }
@@ -86,135 +126,224 @@
             100% { transform: translateX(-50%); }
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
         }
 
-        @keyframes slideUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-100%); display: none;}
+        @keyframes slideUpExit {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; visibility: hidden; }
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1) rotate(-3deg); }
+            50% { transform: scale(1.08) rotate(2deg); }
         }
 
         .animate-marquee {
             display: inline-block;
             white-space: nowrap;
-            animation: marquee 15s linear infinite;
+            animation: marquee 22s linear infinite;
         }
 
-        .shape-float {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .slide-up-exit {
-            animation: slideUp 0.8s cubic-bezier(0.87, 0, 0.13, 1) forwards;
-        }
-        
         .marquee-container {
             overflow: hidden;
             white-space: nowrap;
             border-top: var(--border-heavy);
             border-bottom: var(--border-heavy);
             background: #FFD600;
+            pointer-events: none; 
         }
 
-        /* Floating shapes positioning */
-        .bg-shape {
-            position: fixed;
-            z-index: -1;
-            border: var(--border-heavy);
-            box-shadow: var(--shadow-heavy);
+        .shape-float {
+            animation: floatSlow 7s ease-in-out infinite;
         }
-        
-        #player-iframe {
-            width: 100%;
-            height: calc(100vh - 64px);
-            border: none;
+
+        .slide-up-exit {
+            animation: slideUpExit 0.6s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+            pointer-events: none;
+        }
+
+        .pulse-badge {
+            animation: pulseBadge 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="text-sc-black relative min-h-screen">
+<body class="relative min-h-screen">
 
-    <div class="bg-shape bg-sc-red rounded-full w-48 h-48 shape-float top-20 left-10"></div>
-    <div class="bg-shape bg-sc-blue w-40 h-40 shape-float bottom-40 right-20" style="animation-delay: -2s;"></div>
-    <div class="bg-shape bg-sc-white rounded-full w-64 h-24 shape-float top-1/2 right-1/3" style="animation-delay: -4s;"></div>
-
-    <div id="landing-screen" class="fixed inset-0 z-50 bg-sc-yellow flex flex-col items-center justify-center brutal-border">
-        <h1 class="text-7xl md:text-9xl mb-8 tracking-tighter text-center">SCRIPT<br>CADE</h1>
-        <p class="font-bold text-xl md:text-2xl mb-12 uppercase">RAW TERMINAL // HIGH VOLTAGE</p>
-        <button id="enter-btn" class="brutal-border brutal-shadow bg-sc-red text-sc-white font-heading text-3xl md:text-5xl py-6 px-12 hover:bg-sc-black sound-click">
-            ENTER SYSTEM
-        </button>
+    <div class="bg-layer">
+        <div class="absolute bg-sc-red rounded-full w-48 h-48 shape-float top-20 left-10 brutal-border opacity-30"></div>
+        <div class="absolute bg-sc-yellow w-40 h-40 shape-float bottom-40 right-20 brutal-border opacity-30" style="animation-delay: -2s;"></div>
+        <div class="absolute bg-sc-white rounded-full w-64 h-24 shape-float top-1/3 right-1/3 brutal-border opacity-30" style="animation-delay: -4s;"></div>
     </div>
 
-    <nav class="sticky top-0 z-40 bg-sc-white brutal-border border-b-4 flex items-center justify-between p-4 px-6 shadow-[0px_8px_0px_#0B0B0B]">
-        <div class="font-heading text-2xl md:text-3xl tracking-tight text-sc-blue">SCRIPT CADE</div>
+    <div id="landing-screen" class="fixed inset-0 z-50 bg-sc-black flex flex-col items-center justify-center p-6 text-center overflow-hidden">
         
-        <div class="flex items-center gap-4">
-            <div class="hidden md:flex items-center border-4 border-sc-black bg-sc-white p-1">
-                <input type="text" placeholder="SEARCH ARCHIVE..." class="outline-none px-2 font-bold uppercase w-48 bg-transparent">
-                <button class="bg-sc-yellow px-3 py-1 font-heading border-2 border-sc-black hover:bg-sc-black hover:text-sc-white sound-click">GO</button>
+        <!-- Subtle Pattern Background -->
+        <div class="absolute inset-0 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+            
+            <!-- Featured Badge -->
+            <div class="pulse-badge bg-sc-yellow text-sc-black font-heading text-lg md:text-2xl px-6 py-2 brutal-border shadow-[6px_6px_0px_#FF0000] mb-6 uppercase tracking-widest inline-block">
+                ✨ EXCLUSIVE FEATURED DROP ✨
             </div>
             
-            <button id="audio-toggle" class="brutal-border brutal-shadow no-press bg-sc-black text-sc-white p-2 font-bold uppercase sound-click">
+            <!-- PAYOUT Main Title Banner -->
+            <div class="bg-sc-white brutal-border p-8 md:p-12 brutal-shadow mb-8 transform -rotate-1 relative w-full">
+                <div class="absolute -top-5 left-6 bg-sc-red text-sc-white font-heading px-4 py-1 text-sm border-2 border-sc-black">
+                    FEATURED GAME OF THE MONTH
+                </div>
+
+                <h1 class="text-6xl sm:text-8xl md:text-9xl font-heading text-sc-black tracking-tight leading-none mb-4">
+                    PAYOUT
+                </h1>
+                
+                <p class="text-lg md:text-2xl font-bold text-sc-black max-w-2xl mx-auto mb-2">
+                    High stakes, big rewards, and zero limits. The newest addition to ScriptCade is now live.
+                </p>
+
+                <div class="flex flex-wrap justify-center gap-3 mt-4">
+                    <span class="bg-sc-yellow px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">💰 High Stakes</span>
+                    <span class="bg-sc-red text-sc-white px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">🔥 Arcade Action</span>
+                    <span class="bg-sc-black text-sc-white px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">⚡ Instant Play</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
+                <button id="btn-play-payout" class="brutal-border brutal-shadow bg-sc-yellow text-sc-black font-heading text-2xl md:text-4xl py-5 px-10 hover:bg-sc-red hover:text-sc-white transition-all sound-click flex items-center justify-center gap-3">
+                    <span>🎉</span> PLAY PAYOUT NOW
+                </button>
+                
+                <button id="enter-btn" class="brutal-border brutal-shadow bg-sc-white text-sc-black font-heading text-xl md:text-2xl py-5 px-8 hover:bg-sc-yellow transition-all sound-click">
+                    BROWSE ALL GAMES
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <nav class="sticky top-0 z-40 bg-sc-white brutal-border border-b-8 flex flex-wrap items-center justify-between p-4 px-6 shadow-[0px_8px_0px_#000000]">
+        <div class="font-heading text-3xl md:text-5xl tracking-tight text-sc-black cursor-pointer" id="nav-logo">
+            SCRIPT CADE
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
+            <!-- Info / Submit Button -->
+            <button id="info-btn" class="brutal-border brutal-shadow bg-sc-yellow text-sc-black p-2 px-4 font-bold uppercase sound-click flex items-center gap-2 hover:bg-sc-red hover:text-sc-white transition-colors">
+                <span class="text-xl">⚠️</span> INFO / SUBMIT
+            </button>
+
+            <!-- Audio Toggle -->
+            <button id="audio-toggle" class="brutal-border brutal-shadow no-press bg-sc-black text-sc-white p-2 px-4 font-bold uppercase sound-click">
                 AUDIO: ON
             </button>
         </div>
     </nav>
 
-    <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8">
-        <div class="animate-marquee font-heading text-xl md:text-3xl tracking-widest">
-            <span>SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE // SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL // </span>
-            <span>SCRIPT CADE // RAW TERMINAL // HIGH VOLTAGE // SYSTEM ACTIVE // NO CHEATS ALLOWED // PURE SKILL // </span>
+    <!-- Marquee Tape -->
+    <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8 shadow-[0px_8px_0px_#000] bg-sc-black border-y-8 border-sc-black">
+        <div class="animate-marquee font-heading text-2xl md:text-4xl tracking-widest text-sc-yellow" style="animation-duration: 25s;">
+            <span>🎉 NEW DROP: PAYOUT IS LIVE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // TOP SCORES ONLY // 🎉 NEW DROP: PAYOUT IS LIVE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
         </div>
     </div>
 
     <main class="max-w-7xl mx-auto px-4 py-8 relative z-10">
         
-        <div class="flex flex-wrap gap-4 mb-12 justify-center">
-            <button class="filter-btn active brutal-border brutal-shadow bg-sc-blue text-sc-white font-bold py-2 px-6 uppercase sound-click">ALL GAMES</button>
-            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">TRENDING</button>
-            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">ACTION</button>
-            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">LATEST</button>
-            <button class="filter-btn brutal-border brutal-shadow bg-sc-white font-bold py-2 px-6 uppercase sound-click">CURATED</button>
+        <!-- COMMAND CONSOLE -->
+        <div class="mb-12 bg-[#e8e8e8] brutal-border p-6 shadow-[10px_10px_0px_#000]">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-sc-black pb-4 mb-6">
+                <div>
+                    <h3 class="font-heading text-2xl text-sc-black">COMMAND CONSOLE</h3>
+                    <p class="font-bold text-sm text-gray-700">Filter arcade titles by category</p>
+                </div>
+                <!-- Search Input -->
+                <div class="flex items-center border-4 border-sc-black bg-sc-white">
+                    <input type="text" id="search-input" placeholder="SEARCH GAMES..." class="outline-none px-3 py-2 font-bold uppercase w-48 sm:w-64 bg-transparent text-sc-black">
+                    <button id="search-btn" class="bg-sc-black text-sc-white px-4 py-2 font-heading hover:bg-sc-red sound-click transition-colors">GO</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4" id="category-filters">
+                <button data-filter="ALL" class="keycap active-key bg-sc-white text-sc-black font-heading text-lg py-2 px-6 uppercase sound-click">
+                    [ ALL GAMES ]
+                </button>
+                <button data-filter="HOT" class="keycap bg-sc-white text-sc-black font-heading text-lg py-2 px-6 uppercase sound-click">
+                    [ TRENDING 🔥 ]
+                </button>
+                <button data-filter="PUZZLE" class="keycap bg-sc-white text-sc-black font-heading text-lg py-2 px-6 uppercase sound-click">
+                    [ PUZZLE ]
+                </button>
+                <button data-filter="ARCADE" class="keycap bg-sc-white text-sc-black font-heading text-lg py-2 px-6 uppercase sound-click">
+                    [ ARCADE ]
+                </button>
+            </div>
         </div>
 
         <!-- TRENDING NOW Section -->
-        <section class="mb-16">
-            <h2 class="text-4xl md:text-5xl mb-8 bg-sc-black text-sc-white inline-block px-4 py-2 brutal-shadow transform -rotate-2">TRENDING NOW</h2>
-            <div id="hot-games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section class="mb-16" id="section-trending">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-3xl md:text-5xl bg-sc-red text-sc-white inline-block px-6 py-3 brutal-border border-4 shadow-[8px_8px_0px_#000] transform -rotate-1">
+                    🔥 TRENDING NOW
+                </h2>
+            </div>
+            <div id="hot-games-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Injected via JS -->
             </div>
         </section>
 
         <!-- ALL ARCHIVES Section -->
-        <section>
-            <h2 class="text-4xl md:text-5xl mb-8 bg-sc-yellow border-4 border-sc-black inline-block px-4 py-2 brutal-shadow transform rotate-1">ALL ARCHIVES</h2>
-            <div id="all-games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section id="section-all">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-3xl md:text-5xl bg-sc-black text-sc-white inline-block px-6 py-3 brutal-border border-4 shadow-[8px_8px_0px_#FFD600] transform rotate-1">
+                    🕹️ ALL ARCHIVES
+                </h2>
+            </div>
+            <div id="all-games-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Injected via JS -->
             </div>
         </section>
     </main>
 
+    <div id="info-modal" class="fixed inset-0 z-[200] bg-sc-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-sc-yellow brutal-border shadow-[16px_16px_0px_#FF0000] p-8 md:p-12 max-w-2xl text-center relative transform rotate-1 w-full">
+            <h2 class="text-3xl md:text-5xl font-heading mb-6">WANT YOUR GAME FEATURED?</h2>
+            <p class="font-bold text-xl mb-6">Send your HTML / JS game code directly to our curation inbox:</p>
+            
+            <div class="bg-sc-white brutal-border p-6 mb-6 text-xl md:text-2xl font-bold break-words shadow-[8px_8px_0px_#000] flex flex-col items-center gap-3">
+                <span class="text-sc-red font-heading text-2xl md:text-3xl">afriedman@asteme.com</span>
+                <button id="btn-copy-email" class="bg-sc-black text-sc-white text-sm font-heading px-4 py-2 hover:bg-sc-blue transition-colors">
+                    📋 COPY EMAIL ADDRESS
+                </button>
+            </div>
+            
+            <button id="btn-close-info" class="brutal-border brutal-shadow bg-sc-black text-sc-white font-heading text-xl px-10 py-3 hover:bg-sc-red sound-click">
+                CLOSE WINDOW
+            </button>
+        </div>
+    </div>
+
     <div id="game-modal" class="fixed inset-0 z-[100] bg-sc-black hidden flex-col">
         <div class="flex items-center justify-between p-4 bg-sc-white brutal-border border-b-4 border-sc-black">
-            <div id="modal-title" class="font-heading text-xl md:text-2xl truncate text-sc-blue w-1/2">GAME TITLE</div>
-            <div class="flex gap-4">
-                <button id="btn-reload" class="brutal-border brutal-shadow bg-sc-yellow font-bold px-4 py-2 sound-click">RELOAD</button>
-                <button id="btn-expand" class="brutal-border brutal-shadow bg-sc-white font-bold px-4 py-2 hidden md:block sound-click">EXPAND</button>
-                <button id="btn-close" class="brutal-border brutal-shadow bg-sc-red text-sc-white font-bold px-4 py-2 sound-click">CLOSE</button>
+            <div id="modal-title" class="font-heading text-xl md:text-3xl truncate text-sc-black w-1/2 uppercase">GAME TITLE</div>
+            <div class="flex gap-3">
+                <button id="btn-confetti-trigger" class="brutal-border brutal-shadow bg-sc-yellow font-bold px-4 py-2 sound-click uppercase text-sm md:text-base hover:bg-sc-black hover:text-sc-white transition-colors">🎉 Celebrate</button>
+                <button id="btn-reload" class="brutal-border brutal-shadow bg-sc-white font-bold px-4 py-2 sound-click uppercase text-sm md:text-base hover:bg-sc-black hover:text-sc-white transition-colors">Reload</button>
+                <button id="btn-close" class="brutal-border brutal-shadow bg-sc-red text-sc-white font-bold px-4 py-2 sound-click uppercase text-sm md:text-base hover:bg-sc-black transition-colors">Close</button>
             </div>
         </div>
-        <div class="flex-grow bg-[#222] relative w-full h-full flex items-center justify-center">
-            <!-- Loading indicator -->
-            <div id="loading-text" class="absolute text-sc-white font-heading text-3xl animate-pulse">BOOTING...</div>
-            <iframe id="player-iframe" src="" allowfullscreen class="relative z-10 w-full h-full"></iframe>
+        <div class="flex-grow bg-[#111] relative w-full h-full flex items-center justify-center">
+            <div id="loading-text" class="absolute text-sc-white font-heading text-2xl animate-pulse">BOOTING GAME...</div>
+            <iframe id="player-iframe" src="" allowfullscreen class="relative z-10 w-full h-full bg-white"></iframe>
         </div>
     </div>
 
     <script>
-        // Web Audio API for physical sound generation
+        /* ------------------------------------------------------------------
+         * 🔊 WEB AUDIO SYNTHESIZER
+         * ------------------------------------------------------------------ */
         let audioCtx;
         let isAudioEnabled = true;
 
@@ -229,135 +358,154 @@
 
         function playHoverTick() {
             if (!isAudioEnabled || !audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.05);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.02);
+                gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.02);
+            } catch(e) {}
         }
 
         function playClickClack() {
             if (!isAudioEnabled || !audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch(e) {}
         }
 
-        function playLaunchThud() {
+        function playLaunchSound() {
             if (!isAudioEnabled || !audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.5);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } catch(e) {}
         }
 
-        // ------------------------------------------------------------------
-        // 🎮 MASTER GAME LIST - ADD YOUR GAMES HERE! 🎮
-        // ------------------------------------------------------------------
-        // To add a new game, just copy the template below and paste it 
-        // before the closing bracket ]; of the gamesList array.
-        // Don't forget the comma at the end of each game block!
-        //
-        // TEMPLATE:
-        // { 
-        //     title: "Game Name",                 // Name of the game
-        //     img: "image_url.png",               // Thumbnail image URL
-        //     tag: "HOT",                         // Badge text (e.g., "HOT", "NEW", or "")
-        //     category: ["ACTION", "PUZZLE"],     // Categories for filtering
-        //     url: "https://link-to-game.com/"    // The URL of the game to load
-        // },
-        // ------------------------------------------------------------------
-        
+        /* ------------------------------------------------------------------
+         * 🎉 CONFETTI CELEBRATION SYSTEM
+         * ------------------------------------------------------------------ */
+        function triggerConfetti(particleCount = 80) {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: particleCount,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#FFD600', '#FF0000', '#000000', '#FFFFFF', '#2563EB']
+                });
+            }
+        }
+
+        function triggerPayoutSpecialConfetti() {
+            if (typeof confetti === 'function') {
+                // Multi-burst confetti for PAYOUT
+                const duration = 2 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#FFD600', '#FF0000', '#FFFFFF']
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#FFD600', '#000000', '#2563EB']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         * 🎮 MASTER GAME LIST
+         * ------------------------------------------------------------------ */
         const gamesList = [
             { 
+                title: "PAYOUT 💸", 
+                img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
+                tag: "NEW", 
+                category: ["ARCADE", "HIGH STAKES"], 
+                url: "https://thenewscriptcade.github.io/PAYOUT/" 
+            },
+            { 
                 title: "Nut & Bolt Sort", 
-                img: "https://placehold.co/400x300/0B0B0B/FFD600?text=NUT+%26+BOLT", 
+                img: "https://placehold.co/600x400/000000/FFFFFF?text=NUT+%26+BOLT", 
                 tag: "HOT", 
                 category: ["PUZZLE"], 
                 url: "https://thenewscriptcade.github.io/nut-bolt-sort/" 
             },
             { 
                 title: "Egg Crate", 
-                img: "https://placehold.co/400x300/FF3333/FFFFFF?text=EGG+CRATE", 
-                tag: "NEW", 
-                category: ["LATEST"], 
+                img: "https://placehold.co/600x400/FF0000/FFFFFF?text=EGG+CRATE", 
+                tag: "HOT", 
+                category: ["PUZZLE", "ARCADE"], 
                 url: "https://thenewscriptcade.github.io/EggCrates/" 
             }
         ];
 
-        // UI Interaction Bindings
-        document.getElementById('enter-btn').addEventListener('click', () => {
-            initAudio();
-            playLaunchThud();
-            document.getElementById('landing-screen').classList.add('slide-up-exit');
-        });
+        let activeFilter = "ALL";
+        let searchQuery = "";
 
-        const audioToggle = document.getElementById('audio-toggle');
-        audioToggle.addEventListener('click', () => {
-            isAudioEnabled = !isAudioEnabled;
-            if(isAudioEnabled) initAudio();
-            audioToggle.innerText = isAudioEnabled ? "AUDIO: ON" : "AUDIO: OFF";
-            audioToggle.classList.toggle('bg-sc-black', isAudioEnabled);
-            audioToggle.classList.toggle('text-sc-white', isAudioEnabled);
-            audioToggle.classList.toggle('bg-sc-red', !isAudioEnabled);
-            audioToggle.classList.toggle('text-sc-black', !isAudioEnabled);
-        });
-
-        // Add interaction sounds to interactive elements
-        function attachSoundEvents() {
-            document.querySelectorAll('button, .game-card, input').forEach(el => {
-                el.addEventListener('mouseenter', playHoverTick);
-            });
-            document.querySelectorAll('.sound-click').forEach(el => {
-                el.addEventListener('mousedown', playClickClack);
-            });
-        }
-
-        // Render Game Card HTML
+        /* ------------------------------------------------------------------
+         * ⚙️ RENDER FUNCTIONS
+         * ------------------------------------------------------------------ */
         function generateGameCard(game) {
             let badgeHtml = '';
             if (game.tag) {
-                const badgeColor = game.tag === "HOT" ? "bg-sc-red text-sc-white" : "bg-sc-blue text-sc-white";
-                badgeHtml = `<span class="absolute top-[-10px] right-[-10px] ${badgeColor} brutal-border font-heading px-3 py-1 text-sm transform rotate-6 z-20 brutal-shadow no-press">${game.tag}</span>`;
+                const badgeColor = game.tag === "HOT" ? "bg-sc-red text-sc-white" : "bg-sc-yellow text-sc-black";
+                badgeHtml = `<span class="absolute top-[-14px] right-[-14px] ${badgeColor} brutal-border border-4 font-heading px-4 py-1 text-base transform rotate-6 z-20 shadow-[4px_4px_0px_#000] no-press">${game.tag}</span>`;
             }
 
             return `
-                <div class="game-card bg-sc-white brutal-border brutal-shadow flex flex-col relative group cursor-pointer sound-click" onclick="openGame('${game.title}', '${game.url}')">
+                <div class="game-card bg-sc-white brutal-border brutal-shadow flex flex-col relative group cursor-pointer sound-click transition-transform hover:-translate-y-1" onclick="openGame('${game.title.replace(/'/g, "\\'")}', '${game.url}')">
                     ${badgeHtml}
-                    <div class="h-48 border-b-4 border-sc-black overflow-hidden bg-sc-black relative">
+                    <div class="h-52 border-b-4 border-sc-black overflow-hidden bg-sc-black relative">
                         <img src="${game.img}" alt="${game.title}" class="w-full h-full object-cover game-img">
-                        <div class="absolute inset-0 bg-sc-yellow/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <span class="font-heading text-3xl text-sc-black">PLAY</span>
+                        <div class="absolute inset-0 bg-sc-yellow/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <span class="font-heading text-4xl text-sc-black border-4 border-sc-black px-6 py-2 bg-sc-white shadow-[4px_4px_0px_#000]">PLAY NOW</span>
                         </div>
                     </div>
-                    <div class="p-4 flex-grow flex flex-col justify-between">
+                    <div class="p-5 flex-grow flex flex-col justify-between">
                         <div>
-                            <p class="text-xs font-bold text-sc-black/50 mb-1">${game.category.join(", ")}</p>
-                            <h3 class="text-2xl font-heading mb-4">${game.title}</h3>
+                            <p class="text-xs font-bold text-sc-red mb-1 uppercase tracking-wider">${game.category.join(" • ")}</p>
+                            <h3 class="text-3xl font-heading mb-4 leading-tight uppercase">${game.title}</h3>
                         </div>
-                        <button class="w-full bg-sc-black text-sc-white font-bold py-3 uppercase border-2 border-sc-black group-hover:bg-sc-yellow group-hover:text-sc-black transition-colors duration-100">
-                            PLAY NOW
+                        <button class="w-full bg-sc-black text-sc-white font-heading py-3 text-lg uppercase border-2 border-sc-black group-hover:bg-sc-yellow group-hover:text-sc-black transition-colors">
+                            LAUNCH GAME →
                         </button>
                     </div>
                 </div>
@@ -367,57 +515,226 @@
         function renderGames() {
             const hotContainer = document.getElementById('hot-games-grid');
             const allContainer = document.getElementById('all-games-grid');
-            
-            // Show games with HOT or NEW tags in the trending section automatically
-            const trendingGames = gamesList.filter(game => game.tag === "HOT" || game.tag === "NEW");
-            
-            hotContainer.innerHTML = trendingGames.map(generateGameCard).join('');
-            allContainer.innerHTML = gamesList.map(generateGameCard).join('');
-            
+
+            // Filter logic
+            const filtered = gamesList.filter(game => {
+                const matchesFilter = (activeFilter === "ALL") || 
+                    (activeFilter === "HOT" && (game.tag === "HOT" || game.tag === "NEW")) ||
+                    (game.category.includes(activeFilter));
+                
+                const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    game.category.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                return matchesFilter && matchesSearch;
+            });
+
+            // Hot / Trending games
+            const trendingGames = filtered.filter(g => g.tag === "HOT" || g.tag === "NEW");
+
+            if (hotContainer) {
+                hotContainer.innerHTML = trendingGames.length > 0 
+                    ? trendingGames.map(generateGameCard).join('') 
+                    : `<p class="font-bold text-gray-500 col-span-full">No trending games match your search.</p>`;
+            }
+
+            if (allContainer) {
+                allContainer.innerHTML = filtered.length > 0 
+                    ? filtered.map(generateGameCard).join('') 
+                    : `<p class="font-bold text-gray-500 col-span-full">No games found.</p>`;
+            }
+
             attachSoundEvents();
         }
 
-        // Game Modal Logic
-        const modal = document.getElementById('game-modal');
-        const iframe = document.getElementById('player-iframe');
-        const modalTitle = document.getElementById('modal-title');
-        
+        /* ------------------------------------------------------------------
+         * 🎯 EVENT ATTACHMENTS & MODALS
+         * ------------------------------------------------------------------ */
+        function attachSoundEvents() {
+            document.querySelectorAll('button, .game-card, .keycap').forEach(el => {
+                el.removeEventListener('mouseenter', playHoverTick);
+                el.addEventListener('mouseenter', playHoverTick);
+            });
+            document.querySelectorAll('.sound-click, .keycap').forEach(el => {
+                el.removeEventListener('mousedown', playClickClack);
+                el.addEventListener('mousedown', playClickClack);
+            });
+        }
+
+        // Open Game modal
         window.openGame = function(title, url) {
             initAudio();
-            playLaunchThud();
-            modalTitle.innerText = title;
-            iframe.src = url;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden'; // prevent bg scroll
+            playLaunchSound();
+            
+            if (title.includes("PAYOUT")) {
+                triggerPayoutSpecialConfetti();
+            } else {
+                triggerConfetti(60);
+            }
+
+            const modalTitle = document.getElementById('modal-title');
+            const iframe = document.getElementById('player-iframe');
+            const gameModal = document.getElementById('game-modal');
+
+            if (modalTitle) modalTitle.innerText = title;
+            if (iframe) iframe.src = url;
+            
+            if (gameModal) {
+                gameModal.classList.remove('hidden');
+                gameModal.classList.add('flex');
+            }
+            document.body.style.overflow = 'hidden';
         };
 
-        document.getElementById('btn-close').addEventListener('click', () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            iframe.src = '';
-            document.body.style.overflow = '';
-        });
+        // DOM Ready Bindings
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGames();
 
-        document.getElementById('btn-reload').addEventListener('click', () => {
-            if(iframe.src) iframe.src = iframe.src;
-        });
+            // Landing screen play payout button
+            const btnPlayPayout = document.getElementById('btn-play-payout');
+            if (btnPlayPayout) {
+                btnPlayPayout.addEventListener('click', () => {
+                    initAudio();
+                    playLaunchSound();
+                    triggerPayoutSpecialConfetti();
+                    document.getElementById('landing-screen').classList.add('slide-up-exit');
+                    
+                    const payoutGame = gamesList.find(g => g.title.includes("PAYOUT")) || gamesList[0];
+                    setTimeout(() => {
+                        openGame(payoutGame.title, payoutGame.url);
+                    }, 400);
+                });
+            }
 
-        document.getElementById('btn-expand').addEventListener('click', () => {
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-            } else if (iframe.msRequestFullscreen) {
-                iframe.msRequestFullscreen();
+            // Landing screen skip button
+            const enterBtn = document.getElementById('enter-btn');
+            if (enterBtn) {
+                enterBtn.addEventListener('click', () => {
+                    initAudio();
+                    playClickClack();
+                    triggerConfetti(50);
+                    document.getElementById('landing-screen').classList.add('slide-up-exit');
+                });
+            }
+
+            // Audio Toggle
+            const audioToggle = document.getElementById('audio-toggle');
+            if (audioToggle) {
+                audioToggle.addEventListener('click', () => {
+                    isAudioEnabled = !isAudioEnabled;
+                    if (isAudioEnabled) initAudio();
+                    audioToggle.innerText = isAudioEnabled ? "AUDIO: ON" : "AUDIO: OFF";
+                    audioToggle.classList.toggle('bg-sc-black', isAudioEnabled);
+                    audioToggle.classList.toggle('text-sc-white', isAudioEnabled);
+                    audioToggle.classList.toggle('bg-sc-red', !isAudioEnabled);
+                    audioToggle.classList.toggle('text-sc-black', !isAudioEnabled);
+                });
+            }
+
+            // Info Modal
+            const infoModal = document.getElementById('info-modal');
+            const infoBtn = document.getElementById('info-btn');
+            const btnCloseInfo = document.getElementById('btn-close-info');
+            const btnCopyEmail = document.getElementById('btn-copy-email');
+
+            if (infoBtn && infoModal) {
+                infoBtn.addEventListener('click', () => {
+                    playClickClack();
+                    infoModal.classList.remove('hidden');
+                    infoModal.classList.add('flex');
+                });
+            }
+
+            if (btnCloseInfo && infoModal) {
+                btnCloseInfo.addEventListener('click', () => {
+                    playClickClack();
+                    infoModal.classList.add('hidden');
+                    infoModal.classList.remove('flex');
+                });
+            }
+
+            if (btnCopyEmail) {
+                btnCopyEmail.addEventListener('click', () => {
+                    const email = "afriedman@asteme.com";
+                    // Fallback clipboard logic
+                    const tempInput = document.createElement('input');
+                    tempInput.value = email;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+
+                    btnCopyEmail.innerText = "✅ COPIED TO CLIPBOARD!";
+                    setTimeout(() => {
+                        btnCopyEmail.innerText = "📋 COPY EMAIL ADDRESS";
+                    }, 2000);
+                });
+            }
+
+            // Category Filter Buttons
+            const filterButtons = document.querySelectorAll('#category-filters button');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterButtons.forEach(b => b.classList.remove('active-key', 'bg-sc-red', 'text-sc-white'));
+                    btn.classList.add('active-key');
+                    activeFilter = btn.getAttribute('data-filter') || "ALL";
+                    renderGames();
+                });
+            });
+
+            // Search input
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            
+            function handleSearch() {
+                if (searchInput) searchQuery = searchInput.value;
+                renderGames();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('keyup', handleSearch);
+            }
+            if (searchBtn) {
+                searchBtn.addEventListener('click', handleSearch);
+            }
+
+            // Modal Controls
+            const btnClose = document.getElementById('btn-close');
+            const btnReload = document.getElementById('btn-reload');
+            const btnConfetti = document.getElementById('btn-confetti-trigger');
+            const gameModal = document.getElementById('game-modal');
+            const iframe = document.getElementById('player-iframe');
+
+            if (btnClose) {
+                btnClose.addEventListener('click', () => {
+                    if (gameModal) {
+                        gameModal.classList.add('hidden');
+                        gameModal.classList.remove('flex');
+                    }
+                    if (iframe) iframe.src = '';
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (btnReload && iframe) {
+                btnReload.addEventListener('click', () => {
+                    if (iframe.src) iframe.src = iframe.src;
+                });
+            }
+
+            if (btnConfetti) {
+                btnConfetti.addEventListener('click', () => {
+                    triggerConfetti(100);
+                });
+            }
+
+            // Logo scroll top
+            const logo = document.getElementById('nav-logo');
+            if (logo) {
+                logo.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
             }
         });
-
-        // Initialize App
-        window.onload = () => {
-            renderGames();
-        };
-
     </script>
 </body>
 </html>
