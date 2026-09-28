@@ -196,12 +196,15 @@
                     FEATURED GAME OF THE MONTH
                 </div>
 
-                <h1 class="text-6xl sm:text-8xl md:text-9xl font-heading text-sc-black tracking-tight leading-none mb-4">
+                <h1 class="text-6xl sm:text-8xl md:text-9xl font-heading text-sc-black tracking-tight leading-none mb-2">
                     PAYOUT
                 </h1>
+                <h2 class="text-3xl sm:text-5xl md:text-6xl font-heading text-sc-red tracking-tight leading-none mb-4">
+                    THE FINAL UPDATE
+                </h2>
                 
                 <p class="text-lg md:text-2xl font-bold text-sc-black max-w-2xl mx-auto mb-2">
-                    High stakes, big rewards, and zero limits. The newest addition to ScriptCade is now live.
+                    The ultimate version is here. High stakes, big rewards, and zero limits. Play the final chapter now!
                 </p>
 
                 <div class="flex flex-wrap justify-center gap-3 mt-4">
@@ -214,7 +217,7 @@
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
                 <button id="btn-play-payout" class="brutal-border brutal-shadow bg-sc-yellow text-sc-black font-heading text-2xl md:text-4xl py-5 px-10 hover:bg-sc-red hover:text-sc-white transition-all sound-click flex items-center justify-center gap-3">
-                    <span>🎉</span> PLAY PAYOUT NOW
+                    <span>🎉</span> PLAY FINAL UPDATE
                 </button>
                 
                 <button id="enter-btn" class="brutal-border brutal-shadow bg-sc-white text-sc-black font-heading text-xl md:text-2xl py-5 px-8 hover:bg-sc-yellow transition-all sound-click">
@@ -246,7 +249,7 @@
     <!-- Marquee Tape -->
     <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8 shadow-[0px_8px_0px_#000] bg-sc-black border-y-8 border-sc-black">
         <div class="animate-marquee font-heading text-2xl md:text-4xl tracking-widest text-sc-yellow" style="animation-duration: 25s;">
-            <span>🎉 NEW DROP: PAYOUT IS LIVE // PAYOUT IS GETTING AN UPDATE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // TOP SCORES ONLY // 🎉 NEW DROP: PAYOUT IS LIVE // PAYOUT IS GETTING AN UPDATE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
+            <span>🎉 PAYOUT: THE FINAL UPDATE IS LIVE // THE ULTIMATE ARCADE EXPERIENCE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // TOP SCORES ONLY // 🎉 PAYOUT: THE FINAL UPDATE IS LIVE // THE ULTIMATE ARCADE EXPERIENCE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
         </div>
     </div>
 
@@ -473,7 +476,7 @@
             { 
                 title: "PAYOUT 💸", 
                 img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
-                tag: "HOT", 
+                tag: "FINAL UPDATE", 
                 category: ["ARCADE", "HIGH STAKES"], 
                 url: "https://thenewscriptcade.github.io/PAYOUT/" 
             },
@@ -502,7 +505,7 @@
         function generateGameCard(game) {
             let badgeHtml = '';
             if (game.tag) {
-                const badgeColor = game.tag === "HOT" ? "bg-sc-red text-sc-white" : "bg-sc-yellow text-sc-black";
+                const badgeColor = (game.tag === "HOT" || game.tag === "FINAL UPDATE") ? "bg-sc-red text-sc-white" : "bg-sc-yellow text-sc-black";
                 badgeHtml = `<span class="absolute top-[-14px] right-[-14px] ${badgeColor} brutal-border border-4 font-heading px-4 py-1 text-base transform rotate-6 z-20 shadow-[4px_4px_0px_#000] no-press">${game.tag}</span>`;
             }
 
@@ -541,7 +544,7 @@
             // Filter logic
             const filtered = gamesList.filter(game => {
                 const matchesFilter = (activeFilter === "ALL") || 
-                    (activeFilter === "HOT" && (game.tag === "HOT" || game.tag === "NEW")) ||
+                    (activeFilter === "HOT" && (game.tag === "HOT" || game.tag === "NEW" || game.tag === "FINAL UPDATE")) ||
                     (game.category.includes(activeFilter));
                 
                 const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -551,7 +554,7 @@
             });
 
             // Hot / Trending games
-            const trendingGames = filtered.filter(g => g.tag === "HOT" || g.tag === "NEW");
+            const trendingGames = filtered.filter(g => g.tag === "HOT" || g.tag === "NEW" || g.tag === "FINAL UPDATE");
 
             if (hotContainer) {
                 hotContainer.innerHTML = trendingGames.length > 0 
