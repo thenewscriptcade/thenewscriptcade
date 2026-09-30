@@ -168,6 +168,12 @@
         .pulse-badge {
             animation: pulseBadge 3s ease-in-out infinite;
         }
+
+        /* Fun Hack Mode Class for the Bot */
+        .hack-mode {
+            filter: invert(1) hue-rotate(180deg);
+            transition: filter 0.5s ease;
+        }
     </style>
 </head>
 <body class="relative min-h-screen">
@@ -176,56 +182,6 @@
         <div class="absolute bg-sc-red rounded-full w-48 h-48 shape-float top-20 left-10 brutal-border opacity-30"></div>
         <div class="absolute bg-sc-yellow w-40 h-40 shape-float bottom-40 right-20 brutal-border opacity-30" style="animation-delay: -2s;"></div>
         <div class="absolute bg-sc-white rounded-full w-64 h-24 shape-float top-1/3 right-1/3 brutal-border opacity-30" style="animation-delay: -4s;"></div>
-    </div>
-
-    <div id="landing-screen" class="fixed inset-0 z-50 bg-sc-black flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-        
-        <!-- Subtle Pattern Background -->
-        <div class="absolute inset-0 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
-
-        <div class="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
-            
-            <!-- Featured Badge -->
-            <div class="pulse-badge bg-sc-yellow text-sc-black font-heading text-lg md:text-2xl px-6 py-2 brutal-border shadow-[6px_6px_0px_#FF0000] mb-6 uppercase tracking-widest inline-block">
-                ✨ EXCLUSIVE FEATURED DROP ✨
-            </div>
-            
-            <!-- PAYOUT Main Title Banner -->
-            <div class="bg-sc-white brutal-border p-8 md:p-12 brutal-shadow mb-8 transform -rotate-1 relative w-full">
-                <div class="absolute -top-5 left-6 bg-sc-red text-sc-white font-heading px-4 py-1 text-sm border-2 border-sc-black">
-                    FEATURED GAME OF THE MONTH
-                </div>
-
-                <h1 class="text-6xl sm:text-8xl md:text-9xl font-heading text-sc-black tracking-tight leading-none mb-2">
-                    PAYOUT
-                </h1>
-                <h2 class="text-3xl sm:text-5xl md:text-6xl font-heading text-sc-red tracking-tight leading-none mb-4">
-                    THE FINAL UPDATE
-                </h2>
-                
-                <p class="text-lg md:text-2xl font-bold text-sc-black max-w-2xl mx-auto mb-2">
-                    The ultimate version is here. High stakes, big rewards, and zero limits. Play the final chapter now!
-                </p>
-
-                <div class="flex flex-wrap justify-center gap-3 mt-4">
-                    <span class="bg-sc-yellow px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">💰 High Stakes</span>
-                    <span class="bg-sc-red text-sc-white px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">🔥 Arcade Action</span>
-                    <span class="bg-sc-black text-sc-white px-3 py-1 font-bold border-2 border-sc-black text-sm uppercase">⚡ Instant Play</span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
-                <button id="btn-play-payout" class="brutal-border brutal-shadow bg-sc-yellow text-sc-black font-heading text-2xl md:text-4xl py-5 px-10 hover:bg-sc-red hover:text-sc-white transition-all sound-click flex items-center justify-center gap-3">
-                    <span>🎉</span> PLAY FINAL UPDATE
-                </button>
-                
-                <button id="enter-btn" class="brutal-border brutal-shadow bg-sc-white text-sc-black font-heading text-xl md:text-2xl py-5 px-8 hover:bg-sc-yellow transition-all sound-click">
-                    BROWSE ALL GAMES
-                </button>
-            </div>
-
-        </div>
     </div>
 
     <nav class="sticky top-0 z-40 bg-sc-white brutal-border border-b-8 flex flex-wrap items-center justify-between p-4 px-6 shadow-[0px_8px_0px_#000000]">
@@ -249,7 +205,7 @@
     <!-- Marquee Tape -->
     <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8 shadow-[0px_8px_0px_#000] bg-sc-black border-y-8 border-sc-black">
         <div class="animate-marquee font-heading text-2xl md:text-4xl tracking-widest text-sc-yellow" style="animation-duration: 25s;">
-            <span>🎉 PAYOUT: THE FINAL UPDATE IS LIVE // THE ULTIMATE ARCADE EXPERIENCE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // TOP SCORES ONLY // 🎉 PAYOUT: THE FINAL UPDATE IS LIVE // THE ULTIMATE ARCADE EXPERIENCE // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
+            <span>🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // PLAY THE BEST ARCADE EXPERIENCES // 🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
         </div>
     </div>
 
@@ -341,6 +297,44 @@
             <div id="loading-text" class="absolute text-sc-white font-heading text-2xl animate-pulse">BOOTING GAME...</div>
             <iframe id="player-iframe" src="" allowfullscreen class="relative z-10 w-full h-full bg-white"></iframe>
         </div>
+    </div>
+
+    <!-- 🤖 SCRIPTCADE BOT WIDGET -->
+    <div class="fixed bottom-6 right-6 z-[90] flex flex-col items-end pointer-events-none">
+        
+        <!-- Bot Chat Window -->
+        <div id="bot-window" class="pointer-events-auto bg-sc-white brutal-border shadow-[8px_8px_0px_#000] w-[340px] max-w-[90vw] flex-col hidden mb-4 origin-bottom-right transition-all">
+            <!-- Header -->
+            <div class="bg-sc-black text-sc-white flex justify-between items-center p-3 border-b-4 border-sc-black">
+                <span class="font-heading text-lg tracking-wider">🤖 SCRIPT BOT v1.0</span>
+                <button id="close-bot-btn" class="hover:text-sc-red font-heading text-xl sound-click">X</button>
+            </div>
+            
+            <!-- Chat Log -->
+            <div id="bot-chat-log" class="h-64 overflow-y-auto p-4 flex flex-col gap-3 bg-[#f8f8f8]">
+                <!-- Initial Bot Message -->
+                <div class="self-start bg-sc-white border-2 border-sc-black p-3 text-sm font-bold shadow-[3px_3px_0px_#000] max-w-[85%]">
+                    Beep boop! Welcome to ScriptCade. I can help you find info, recommend games, or do some cool party tricks. What's up?
+                </div>
+            </div>
+
+            <!-- Preset Commands Area -->
+            <div class="p-3 bg-sc-white border-t-4 border-sc-black">
+                <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Select a command:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button class="preset-btn text-xs font-bold bg-sc-yellow border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="How do I submit a game?">📝 Submit Game</button>
+                    <button class="preset-btn text-xs font-bold bg-sc-yellow border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Recommend a game!">🎲 Recommend Game</button>
+                    <button class="preset-btn text-xs font-bold bg-sc-red text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Party Mode!">🎉 Party Mode!</button>
+                    <button class="preset-btn text-xs font-bold bg-sc-black text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Toggle Hack Mode">💻 Hack Mode</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bot Toggle Button -->
+        <button id="toggle-bot-btn" class="pointer-events-auto brutal-border brutal-shadow bg-sc-yellow text-sc-black font-heading text-xl px-4 py-4 rounded-full flex items-center justify-center gap-2 hover:bg-sc-black hover:text-sc-white transition-colors sound-click">
+            <span class="text-3xl animate-bounce">🤖</span>
+            <span class="hidden md:inline">ASK BOT</span>
+        </button>
     </div>
 
     <script>
@@ -474,9 +468,16 @@
                 credit: "Jun"
             },
             { 
+                title: "Army Rush", 
+                img: "https://placehold.co/600x400/4B5320/FFFFFF?text=ARMY+RUSH", 
+                tag: "NEW", 
+                category: ["ARCADE", "ACTION"], 
+                url: "https://thenewscriptcade.github.io/Army-Rush/" 
+            },
+            { 
                 title: "PAYOUT 💸", 
                 img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
-                tag: "FINAL UPDATE", 
+                tag: "HOT", 
                 category: ["ARCADE", "HIGH STAKES"], 
                 url: "https://thenewscriptcade.github.io/PAYOUT/" 
             },
@@ -614,33 +615,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderGames();
 
-            // Landing screen play payout button
-            const btnPlayPayout = document.getElementById('btn-play-payout');
-            if (btnPlayPayout) {
-                btnPlayPayout.addEventListener('click', () => {
-                    initAudio();
-                    playLaunchSound();
-                    triggerPayoutSpecialConfetti();
-                    document.getElementById('landing-screen').classList.add('slide-up-exit');
-                    
-                    const payoutGame = gamesList.find(g => g.title.includes("PAYOUT")) || gamesList[0];
-                    setTimeout(() => {
-                        openGame(payoutGame.title, payoutGame.url);
-                    }, 400);
-                });
-            }
-
-            // Landing screen skip button
-            const enterBtn = document.getElementById('enter-btn');
-            if (enterBtn) {
-                enterBtn.addEventListener('click', () => {
-                    initAudio();
-                    playClickClack();
-                    triggerConfetti(50);
-                    document.getElementById('landing-screen').classList.add('slide-up-exit');
-                });
-            }
-
             // Audio Toggle
             const audioToggle = document.getElementById('audio-toggle');
             if (audioToggle) {
@@ -759,7 +733,99 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
+
+            // Init ScriptCade Bot
+            initBot();
         });
+
+        /* ------------------------------------------------------------------
+         * 🤖 SCRIPTCADE BOT LOGIC
+         * ------------------------------------------------------------------ */
+        function initBot() {
+            const toggleBtn = document.getElementById('toggle-bot-btn');
+            const closeBtn = document.getElementById('close-bot-btn');
+            const botWindow = document.getElementById('bot-window');
+            const chatLog = document.getElementById('bot-chat-log');
+            const presetBtns = document.querySelectorAll('.preset-btn');
+
+            let isBotOpen = false;
+
+            function toggleBot() {
+                isBotOpen = !isBotOpen;
+                if (isBotOpen) {
+                    botWindow.classList.remove('hidden');
+                    botWindow.classList.add('flex');
+                    playClickClack();
+                } else {
+                    botWindow.classList.add('hidden');
+                    botWindow.classList.remove('flex');
+                }
+            }
+
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleBot);
+            if (closeBtn) closeBtn.addEventListener('click', toggleBot);
+
+            function appendMessage(sender, text, htmlContent = null) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = sender === 'user' 
+                    ? 'self-end bg-sc-yellow border-2 border-sc-black p-2 text-sm font-bold shadow-[2px_2px_0px_#000] max-w-[85%]' 
+                    : 'self-start bg-sc-white border-2 border-sc-black p-2 text-sm font-bold shadow-[2px_2px_0px_#000] max-w-[85%]';
+                
+                if (htmlContent) {
+                    msgDiv.innerHTML = htmlContent;
+                } else {
+                    msgDiv.innerText = text;
+                }
+
+                chatLog.appendChild(msgDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+
+            function processBotResponse(question) {
+                // Simulate thinking delay
+                setTimeout(() => {
+                    initAudio(); // Ensure audio is ready for sound effects
+                    if (question === "How do I submit a game?") {
+                        appendMessage('bot', "It's super easy! Just email your HTML/JS code (or a github pages link) to afriedman@asteme.com. Our curation team will review it!");
+                    
+                    } else if (question === "Recommend a game!") {
+                        // Pick a random game
+                        const randomGame = gamesList[Math.floor(Math.random() * gamesList.length)];
+                        const htmlRes = `
+                            I highly recommend trying <strong>${randomGame.title}</strong>!<br><br>
+                            <button onclick="openGame('${randomGame.title.replace(/'/g, "\\'")}', '${randomGame.url}')" class="bg-sc-black text-sc-white px-3 py-1 mt-2 text-xs uppercase font-heading hover:bg-sc-red">
+                                PLAY IT NOW
+                            </button>
+                        `;
+                        appendMessage('bot', '', htmlRes);
+                    
+                    } else if (question === "Party Mode!") {
+                        appendMessage('bot', "Initiating Party Protocol! 🎈");
+                        triggerConfetti(150);
+                        playLaunchSound();
+                        setTimeout(() => triggerConfetti(150), 1000);
+                        setTimeout(() => triggerConfetti(150), 2000);
+                    
+                    } else if (question === "Toggle Hack Mode") {
+                        document.documentElement.classList.toggle('hack-mode');
+                        const isHack = document.documentElement.classList.contains('hack-mode');
+                        appendMessage('bot', isHack ? "Hack mode activated. Colors inverted! 👀" : "Returning to normal neo-brutalist reality.");
+                        playLaunchSound();
+                    } else {
+                        appendMessage('bot', "I'm still learning! But I'm glad you're here at ScriptCade.");
+                    }
+                }, 600);
+            }
+
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const question = e.target.getAttribute('data-ask');
+                    appendMessage('user', question);
+                    processBotResponse(question);
+                    playClickClack();
+                });
+            });
+        }
     </script>
 </body>
 </html>
