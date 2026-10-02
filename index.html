@@ -131,16 +131,6 @@
             50% { transform: translateY(-12px) rotate(3deg); }
         }
 
-        @keyframes slideUpExit {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100vh); opacity: 0; visibility: hidden; }
-        }
-
-        @keyframes pulseBadge {
-            0%, 100% { transform: scale(1) rotate(-3deg); }
-            50% { transform: scale(1.08) rotate(2deg); }
-        }
-
         .animate-marquee {
             display: inline-block;
             white-space: nowrap;
@@ -160,16 +150,6 @@
             animation: floatSlow 7s ease-in-out infinite;
         }
 
-        .slide-up-exit {
-            animation: slideUpExit 0.6s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-            pointer-events: none;
-        }
-
-        .pulse-badge {
-            animation: pulseBadge 3s ease-in-out infinite;
-        }
-
-        /* Fun Hack Mode Class for the Bot */
         .hack-mode {
             filter: invert(1) hue-rotate(180deg);
             transition: filter 0.5s ease;
@@ -190,6 +170,12 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
+            <!-- Live Clock Display -->
+            <div id="live-clock-display" class="brutal-border bg-sc-black text-sc-yellow px-3 py-2 font-mono font-bold text-sm sm:text-base flex items-center gap-2 shadow-[4px_4px_0px_#000]" title="Actual Live Local Time">
+                <span class="w-3 h-3 rounded-full bg-sc-red animate-pulse inline-block"></span>
+                <span id="clock-text">00:00:00 AM</span>
+            </div>
+
             <!-- Info / Submit Button -->
             <button id="info-btn" class="brutal-border brutal-shadow bg-sc-yellow text-sc-black p-2 px-4 font-bold uppercase sound-click flex items-center gap-2 hover:bg-sc-red hover:text-sc-white transition-colors">
                 <span class="text-xl">⚠️</span> INFO / SUBMIT
@@ -202,7 +188,7 @@
         </div>
     </nav>
 
-    <!-- Marquee Tape -->
+    <!-- Marquee Banner -->
     <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8 shadow-[0px_8px_0px_#000] bg-sc-black border-y-8 border-sc-black">
         <div class="animate-marquee font-heading text-2xl md:text-4xl tracking-widest text-sc-yellow" style="animation-duration: 25s;">
             <span>🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // PLAY THE BEST ARCADE EXPERIENCES // 🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
@@ -266,6 +252,7 @@
         </section>
     </main>
 
+    <!-- SUBMIT INFO MODAL -->
     <div id="info-modal" class="fixed inset-0 z-[200] bg-sc-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-sc-yellow brutal-border shadow-[16px_16px_0px_#FF0000] p-8 md:p-12 max-w-2xl text-center relative transform rotate-1 w-full">
             <h2 class="text-3xl md:text-5xl font-heading mb-6">WANT YOUR GAME FEATURED?</h2>
@@ -284,6 +271,7 @@
         </div>
     </div>
 
+    <!-- GAME IFRAME MODAL -->
     <div id="game-modal" class="fixed inset-0 z-[100] bg-sc-black hidden flex-col">
         <div class="flex items-center justify-between p-4 bg-sc-white brutal-border border-b-4 border-sc-black">
             <div id="modal-title" class="font-heading text-xl md:text-3xl truncate text-sc-black w-1/2 uppercase">GAME TITLE</div>
@@ -302,23 +290,18 @@
     <!-- 🤖 SCRIPTCADE BOT WIDGET -->
     <div class="fixed bottom-6 right-6 z-[90] flex flex-col items-end pointer-events-none">
         
-        <!-- Bot Chat Window -->
         <div id="bot-window" class="pointer-events-auto bg-sc-white brutal-border shadow-[8px_8px_0px_#000] w-[340px] max-w-[90vw] flex-col hidden mb-4 origin-bottom-right transition-all">
-            <!-- Header -->
             <div class="bg-sc-black text-sc-white flex justify-between items-center p-3 border-b-4 border-sc-black">
                 <span class="font-heading text-lg tracking-wider">🤖 SCRIPT BOT v1.0</span>
                 <button id="close-bot-btn" class="hover:text-sc-red font-heading text-xl sound-click">X</button>
             </div>
             
-            <!-- Chat Log -->
             <div id="bot-chat-log" class="h-64 overflow-y-auto p-4 flex flex-col gap-3 bg-[#f8f8f8]">
-                <!-- Initial Bot Message -->
                 <div class="self-start bg-sc-white border-2 border-sc-black p-3 text-sm font-bold shadow-[3px_3px_0px_#000] max-w-[85%]">
                     Beep boop! Welcome to ScriptCade. I can help you find info, recommend games, or do some cool party tricks. What's up?
                 </div>
             </div>
 
-            <!-- Preset Commands Area -->
             <div class="p-3 bg-sc-white border-t-4 border-sc-black">
                 <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Select a command:</p>
                 <div class="flex flex-wrap gap-2">
@@ -330,14 +313,17 @@
             </div>
         </div>
 
-        <!-- Bot Toggle Button -->
         <button id="toggle-bot-btn" class="pointer-events-auto brutal-border brutal-shadow bg-sc-yellow text-sc-black font-heading text-xl px-4 py-4 rounded-full flex items-center justify-center gap-2 hover:bg-sc-black hover:text-sc-white transition-colors sound-click">
             <span class="text-3xl animate-bounce">🤖</span>
             <span class="hidden md:inline">ASK BOT</span>
         </button>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         /* ------------------------------------------------------------------
          * 🔊 WEB AUDIO SYNTHESIZER
          * ------------------------------------------------------------------ */
@@ -420,7 +406,6 @@
 
         function triggerPayoutSpecialConfetti() {
             if (typeof confetti === 'function') {
-                // Multi-burst confetti for PAYOUT
                 const duration = 2 * 1000;
                 const end = Date.now() + duration;
 
@@ -452,6 +437,27 @@
          * ------------------------------------------------------------------ */
         const gamesList = [
             { 
+                title: "PAYOUT 💸", 
+                img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
+                tag: "HOT", 
+                category: ["ARCADE", "HIGH STAKES"], 
+                url: "https://thenewscriptcade.github.io/PAYOUT/" 
+            },
+            {
+                title: "Simed City",
+                img: "https://placehold.co/600x400/2563EB/FFFFFF?text=SIMED+CITY",
+                tag: "PROTOTYPE",
+                category: ["ARCADE", "SIMULATION"],
+                url: "https://thenewscriptcade.github.io/Simed-City/"
+            },
+            {
+                title: "Army Rush",
+                img: "https://placehold.co/600x400/FF0000/FFFFFF?text=ARMY+RUSH",
+                tag: "NEW",
+                category: ["ARCADE", "ACTION"],
+                url: "https://thenewscriptcade.github.io/Army-Rush/"
+            },
+            { 
                 title: "Gambling with Friends", 
                 img: "https://placehold.co/600x400/2563EB/FFFFFF?text=GAMBLING+W%2F+FRIENDS", 
                 tag: "NEW", 
@@ -466,20 +472,6 @@
                 category: ["ARCADE", "CASUAL"],
                 url: "https://thenewscriptcade.github.io/Ifish/",
                 credit: "Jun"
-            },
-            { 
-                title: "Army Rush", 
-                img: "https://placehold.co/600x400/4B5320/FFFFFF?text=ARMY+RUSH", 
-                tag: "NEW", 
-                category: ["ARCADE", "ACTION"], 
-                url: "https://thenewscriptcade.github.io/Army-Rush/" 
-            },
-            { 
-                title: "PAYOUT 💸", 
-                img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
-                tag: "HOT", 
-                category: ["ARCADE", "HIGH STAKES"], 
-                url: "https://thenewscriptcade.github.io/PAYOUT/" 
             },
             { 
                 title: "Nut & Bolt Sort", 
@@ -500,13 +492,13 @@
         let activeFilter = "ALL";
         let searchQuery = "";
 
-        /* ------------------------------------------------------------------
-         * ⚙️ RENDER FUNCTIONS
-         * ------------------------------------------------------------------ */
         function generateGameCard(game) {
             let badgeHtml = '';
             if (game.tag) {
-                const badgeColor = (game.tag === "HOT" || game.tag === "FINAL UPDATE") ? "bg-sc-red text-sc-white" : "bg-sc-yellow text-sc-black";
+                let badgeColor = "bg-sc-yellow text-sc-black";
+                if (game.tag === "HOT") badgeColor = "bg-sc-red text-sc-white";
+                if (game.tag === "PROTOTYPE") badgeColor = "bg-sc-blue text-sc-white";
+                
                 badgeHtml = `<span class="absolute top-[-14px] right-[-14px] ${badgeColor} brutal-border border-4 font-heading px-4 py-1 text-base transform rotate-6 z-20 shadow-[4px_4px_0px_#000] no-press">${game.tag}</span>`;
             }
 
@@ -542,10 +534,9 @@
             const hotContainer = document.getElementById('hot-games-grid');
             const allContainer = document.getElementById('all-games-grid');
 
-            // Filter logic
             const filtered = gamesList.filter(game => {
                 const matchesFilter = (activeFilter === "ALL") || 
-                    (activeFilter === "HOT" && (game.tag === "HOT" || game.tag === "NEW" || game.tag === "FINAL UPDATE")) ||
+                    (activeFilter === "HOT" && (game.tag === "HOT" || game.tag === "NEW" || game.tag === "PROTOTYPE")) ||
                     (game.category.includes(activeFilter));
                 
                 const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -554,8 +545,7 @@
                 return matchesFilter && matchesSearch;
             });
 
-            // Hot / Trending games
-            const trendingGames = filtered.filter(g => g.tag === "HOT" || g.tag === "NEW" || g.tag === "FINAL UPDATE");
+            const trendingGames = filtered.filter(g => g.tag === "HOT" || g.tag === "NEW" || g.tag === "PROTOTYPE");
 
             if (hotContainer) {
                 hotContainer.innerHTML = trendingGames.length > 0 
@@ -573,8 +563,20 @@
         }
 
         /* ------------------------------------------------------------------
-         * 🎯 EVENT ATTACHMENTS & MODALS
+         * ⏰ LIVE ACTUAL TIME CLOCK SYSTEM
          * ------------------------------------------------------------------ */
+        function startActualTimeClock() {
+            const clockEl = document.getElementById('clock-text');
+            function updateClock() {
+                if (clockEl) {
+                    const now = new Date();
+                    clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
         function attachSoundEvents() {
             document.querySelectorAll('button, .game-card, .keycap').forEach(el => {
                 el.removeEventListener('mouseenter', playHoverTick);
@@ -586,7 +588,6 @@
             });
         }
 
-        // Open Game modal
         window.openGame = function(title, url) {
             initAudio();
             playLaunchSound();
@@ -613,6 +614,7 @@
 
         // DOM Ready Bindings
         document.addEventListener('DOMContentLoaded', () => {
+            startActualTimeClock();
             renderGames();
 
             // Audio Toggle
@@ -654,7 +656,6 @@
             if (btnCopyEmail) {
                 btnCopyEmail.addEventListener('click', () => {
                     const email = "afriedman@asteme.com";
-                    // Fallback clipboard logic
                     const tempInput = document.createElement('input');
                     tempInput.value = email;
                     document.body.appendChild(tempInput);
@@ -669,10 +670,10 @@
                 });
             }
 
-            // Category Filter Buttons
+            // Category Filters
             const filterButtons = document.querySelectorAll('#category-filters button');
             filterButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     filterButtons.forEach(b => b.classList.remove('active-key', 'bg-sc-red', 'text-sc-white'));
                     btn.classList.add('active-key');
                     activeFilter = btn.getAttribute('data-filter') || "ALL";
@@ -680,7 +681,7 @@
                 });
             });
 
-            // Search input
+            // Search
             const searchInput = document.getElementById('search-input');
             const searchBtn = document.getElementById('search-btn');
             
@@ -689,14 +690,10 @@
                 renderGames();
             }
 
-            if (searchInput) {
-                searchInput.addEventListener('keyup', handleSearch);
-            }
-            if (searchBtn) {
-                searchBtn.addEventListener('click', handleSearch);
-            }
+            if (searchInput) searchInput.addEventListener('keyup', handleSearch);
+            if (searchBtn) searchBtn.addEventListener('click', handleSearch);
 
-            // Modal Controls
+            // Game Modal Controls
             const btnClose = document.getElementById('btn-close');
             const btnReload = document.getElementById('btn-reload');
             const btnConfetti = document.getElementById('btn-confetti-trigger');
@@ -726,7 +723,6 @@
                 });
             }
 
-            // Logo scroll top
             const logo = document.getElementById('nav-logo');
             if (logo) {
                 logo.addEventListener('click', () => {
@@ -734,7 +730,6 @@
                 });
             }
 
-            // Init ScriptCade Bot
             initBot();
         });
 
@@ -782,14 +777,12 @@
             }
 
             function processBotResponse(question) {
-                // Simulate thinking delay
                 setTimeout(() => {
-                    initAudio(); // Ensure audio is ready for sound effects
+                    initAudio();
                     if (question === "How do I submit a game?") {
                         appendMessage('bot', "It's super easy! Just email your HTML/JS code (or a github pages link) to afriedman@asteme.com. Our curation team will review it!");
                     
                     } else if (question === "Recommend a game!") {
-                        // Pick a random game
                         const randomGame = gamesList[Math.floor(Math.random() * gamesList.length)];
                         const htmlRes = `
                             I highly recommend trying <strong>${randomGame.title}</strong>!<br><br>
