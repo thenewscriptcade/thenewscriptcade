@@ -191,12 +191,48 @@
     <!-- Marquee Banner -->
     <div class="marquee-container py-3 relative z-30 transform -rotate-1 scale-105 my-8 shadow-[0px_8px_0px_#000] bg-sc-black border-y-8 border-sc-black">
         <div class="animate-marquee font-heading text-2xl md:text-4xl tracking-widest text-sc-yellow" style="animation-duration: 25s;">
-            <span>🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // PLAY THE BEST ARCADE EXPERIENCES // 🔥 WELCOME TO SCRIPT CADE // NEW GAMES ADDED WEEKLY // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // </span>
+            <span>🚨 3 NEW GAMES DROPPED! // 🧪💥 RAGDOLL LAB (ULTIMATE PHYSICS MAYHEM IS LIVE!) // 🍳 FOOD SIM IS HERE // PLAY THE BEST ARCADE EXPERIENCES // SUBMIT YOUR CODE TO AFRIEDMAN@ASTEME.COM // 🚨 3 NEW GAMES DROPPED! // 🧪💥 RAGDOLL LAB (ULTIMATE PHYSICS MAYHEM IS LIVE!) // 🍳 FOOD SIM IS HERE // </span>
         </div>
     </div>
 
     <main class="max-w-7xl mx-auto px-4 py-8 relative z-10">
         
+        <!-- 🚨 FEATURED SPOTLIGHT HERO: RAGDOLL LAB -->
+        <div class="mb-12 bg-sc-yellow brutal-border p-6 md:p-8 shadow-[12px_12px_0px_#000] relative overflow-hidden transform -rotate-1 hover:rotate-0 transition-transform">
+            <div class="absolute -right-6 -bottom-6 bg-sc-red text-sc-white font-heading text-8xl md:text-9xl opacity-15 pointer-events-none select-none font-black">
+                LAB
+            </div>
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+                <div class="max-w-2xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-sc-red text-sc-white font-heading text-xs md:text-sm px-3 py-1 brutal-border shadow-[3px_3px_0px_#000] animate-pulse">
+                            🔥 FEATURED DROP
+                        </span>
+                        <span class="bg-sc-black text-sc-yellow font-heading text-xs md:text-sm px-3 py-1 brutal-border shadow-[3px_3px_0px_#000]">
+                            3 NEW GAMES LIVE
+                        </span>
+                    </div>
+                    <h2 class="text-4xl md:text-6xl font-heading leading-none text-sc-black mb-3">
+                        🧪 RAGDOLL LAB IS HERE!
+                    </h2>
+                    <p class="font-bold text-lg md:text-xl text-sc-black mb-4 leading-snug">
+                        Total ragdoll chaos has officially landed! Experience high-velocity ragdoll physics, interactive mechanics, and pure sandbox destruction. Plus, cook up a storm with the new <span class="bg-sc-black text-sc-yellow px-2 py-0.5 font-mono">FOOD SIM</span> drop!
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-xs md:text-sm font-bold">
+                        <span class="bg-sc-white text-sc-black px-3 py-1 brutal-border shadow-[2px_2px_0px_#000]">💥 100% PHYSICS CHAOS</span>
+                        <span class="bg-sc-white text-sc-black px-3 py-1 brutal-border shadow-[2px_2px_0px_#000]">🎮 HIGH STAKES SANDBOX</span>
+                        <span class="bg-sc-white text-sc-black px-3 py-1 brutal-border shadow-[2px_2px_0px_#000]">🍳 FOOD SIM INCLUDED</span>
+                    </div>
+                </div>
+                <div class="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 min-w-[260px]">
+                    <button onclick="openGame('Ragdoll Lab 🧪💥', 'https://thenewscriptcade.github.io/Ragdoll-Lab/')" class="w-full bg-sc-red text-sc-white font-heading text-xl md:text-2xl py-4 px-6 brutal-border brutal-shadow hover:bg-sc-black hover:text-sc-yellow transition-all text-center uppercase sound-click flex items-center justify-center gap-2">
+                        <span>LAUNCH RAGDOLL LAB</span>
+                        <span>🚀</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- COMMAND CONSOLE -->
         <div class="mb-12 bg-[#e8e8e8] brutal-border p-6 shadow-[10px_10px_0px_#000]">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-sc-black pb-4 mb-6">
@@ -298,17 +334,17 @@
             
             <div id="bot-chat-log" class="h-64 overflow-y-auto p-4 flex flex-col gap-3 bg-[#f8f8f8]">
                 <div class="self-start bg-sc-white border-2 border-sc-black p-3 text-sm font-bold shadow-[3px_3px_0px_#000] max-w-[85%]">
-                    Beep boop! Welcome to ScriptCade. I can help you find info, recommend games, or do some cool party tricks. What's up?
+                    Beep boop! Welcome to ScriptCade. 3 NEW GAMES just dropped including the viral RAGDOLL LAB! What do you want to play?
                 </div>
             </div>
 
             <div class="p-3 bg-sc-white border-t-4 border-sc-black">
                 <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Select a command:</p>
                 <div class="flex flex-wrap gap-2">
+                    <button class="preset-btn text-xs font-bold bg-sc-red text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Tell me about Ragdoll Lab!">🧪 Ragdoll Hype!</button>
                     <button class="preset-btn text-xs font-bold bg-sc-yellow border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="How do I submit a game?">📝 Submit Game</button>
                     <button class="preset-btn text-xs font-bold bg-sc-yellow border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Recommend a game!">🎲 Recommend Game</button>
-                    <button class="preset-btn text-xs font-bold bg-sc-red text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Party Mode!">🎉 Party Mode!</button>
-                    <button class="preset-btn text-xs font-bold bg-sc-black text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Toggle Hack Mode">💻 Hack Mode</button>
+                    <button class="preset-btn text-xs font-bold bg-sc-black text-sc-white border-2 border-sc-black px-2 py-1 shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:shadow-none active:translate-y-[2px] transition-all sound-click" data-ask="Party Mode!">🎉 Party Mode!</button>
                 </div>
             </div>
         </div>
@@ -436,6 +472,21 @@
          * 🎮 MASTER GAME LIST
          * ------------------------------------------------------------------ */
         const gamesList = [
+            { 
+                title: "Ragdoll Lab 🧪💥", 
+                img: "https://placehold.co/600x400/FF0000/FFFFFF?text=RAGDOLL+LAB+PHYSICS", 
+                tag: "🔥 NEW DROP", 
+                category: ["ARCADE", "PHYSICS", "SIMULATION"], 
+                url: "https://thenewscriptcade.github.io/Ragdoll-Lab/",
+                credit: "ScriptCade Spotlight"
+            },
+            { 
+                title: "Food Sim 🍳🍔", 
+                img: "https://placehold.co/600x400/FFD600/000000?text=FOOD+SIMULATOR", 
+                tag: "NEW", 
+                category: ["ARCADE", "SIMULATION"], 
+                url: "https://thenewscriptcade.github.io/Food-Sim/" 
+            },
             { 
                 title: "PAYOUT 💸", 
                 img: "https://placehold.co/600x400/000000/FFD600?text=P+A+Y+O+U+T", 
@@ -742,6 +793,8 @@
             const botWindow = document.getElementById('bot-window');
             const chatLog = document.getElementById('bot-chat-log');
             const presetBtns = document.querySelectorAll('.preset-btn');
+            const botInput = document.getElementById('bot-input');
+            const botSendBtn = document.getElementById('bot-send-btn');
 
             let isBotOpen = false;
 
@@ -751,6 +804,7 @@
                     botWindow.classList.remove('hidden');
                     botWindow.classList.add('flex');
                     playClickClack();
+                    if(botInput) botInput.focus();
                 } else {
                     botWindow.classList.add('hidden');
                     botWindow.classList.remove('flex');
@@ -779,7 +833,17 @@
             function processBotResponse(question) {
                 setTimeout(() => {
                     initAudio();
-                    if (question === "How do I submit a game?") {
+                    if (question === "Tell me about Ragdoll Lab!") {
+                        const htmlRes = `
+                            <strong>🔥 RAGDOLL LAB IS UNHINGED!</strong><br>
+                            It's our biggest physics sandbox drop yet with ragdoll ragging, force physics, and non-stop chaos!<br><br>
+                            <button onclick="openGame('Ragdoll Lab 🧪💥', 'https://thenewscriptcade.github.io/Ragdoll-Lab/')" class="bg-sc-red text-sc-white px-3 py-1 text-xs uppercase font-heading hover:bg-sc-black">
+                                LAUNCH RAGDOLL LAB 🚀
+                            </button>
+                        `;
+                        appendMessage('bot', '', htmlRes);
+                    
+                    } else if (question === "How do I submit a game?") {
                         appendMessage('bot', "It's super easy! Just email your HTML/JS code (or a github pages link) to afriedman@asteme.com. Our curation team will review it!");
                     
                     } else if (question === "Recommend a game!") {
@@ -808,6 +872,24 @@
                         appendMessage('bot', "I'm still learning! But I'm glad you're here at ScriptCade.");
                     }
                 }, 600);
+            }
+
+            function handleUserInput() {
+                if (!botInput) return;
+                const text = botInput.value.trim();
+                if (!text) return;
+                
+                appendMessage('user', text);
+                botInput.value = '';
+                processBotResponse(text);
+                playClickClack();
+            }
+
+            if (botSendBtn) botSendBtn.addEventListener('click', handleUserInput);
+            if (botInput) {
+                botInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleUserInput();
+                });
             }
 
             presetBtns.forEach(btn => {
